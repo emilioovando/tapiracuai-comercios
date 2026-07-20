@@ -1,0 +1,24 @@
+COMO OBTENER UN ENLACE REAL PARA COMPARTIR
+
+Ahora la demo esta como archivo local en tu computadora. Por eso el boton Compartir no puede incluir un link publico todavia.
+
+Para que funcione como enlace real:
+
+1. Publicar esta carpeta completa en un hosting estatico.
+   Carpeta: tapiracuai-publicar
+   Archivo principal: index.html
+
+2. Opciones simples:
+   - Netlify Drop: arrastrar la carpeta tapiracuai-publicar al panel de Netlify.
+   - Vercel: crear proyecto nuevo y subir esta carpeta.
+   - Cualquier hosting que permita subir archivos HTML estaticos.
+
+3. Cuando el sitio quede publicado, vas a tener un enlace parecido a:
+   https://nombre-del-proyecto.netlify.app
+   o
+   https://nombre-del-proyecto.vercel.app
+
+4. Al abrir la app desde ese enlace publico, el boton Compartir tomara automaticamente ese URL real.
+
+Importante:
+No conviene compartir la ruta local del archivo, porque contiene el nombre de usuario de Windows y solo funciona en esta computadora.

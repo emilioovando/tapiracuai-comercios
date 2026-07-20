@@ -1,0 +1,12 @@
+Panel administrador privado
+
+El acceso publico anterior fue desactivado.
+
+El panel minimo esta en:
+admin-dashboard.html
+
+Solo permite entrar si la sesion activa tiene:
+role = admin
+
+No incluir credenciales de administrador dentro de archivos publicos.
+En produccion este rol debe venir desde Supabase Auth y las politicas RLS.
