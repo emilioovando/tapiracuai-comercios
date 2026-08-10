@@ -51,6 +51,13 @@
   function slugify(value,tail){return String(value||'tapiracuai').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,52)+(tail?'-'+String(tail).slice(0,8):'')}
   function n(value){var num=Number(value);return Number.isFinite(num)?num:null}
   function publicUrl(bucket,path){if(!client||!path)return '';return client.storage.from(bucket).getPublicUrl(path).data.publicUrl||''}
+  function validateImageFile(file){
+    if(!file)return;
+    var allowed=['image/jpeg','image/png','image/webp'];
+    var maxBytes=5*1024*1024;
+    if(allowed.indexOf(file.type)===-1)throw new Error('Formato de imagen no permitido. Usá JPG, PNG o WebP.');
+    if(file.size>maxBytes)throw new Error('La imagen es demasiado pesada. El máximo permitido es 5 MB.');
+  }
   function friendlyError(error){
     var message=String(error&&error.message||error||'').toLowerCase();
     if(message.indexOf('email rate limit')>-1||message.indexOf('rate limit')>-1){
@@ -562,15 +569,25 @@
       var dres=await del;if(dres.error)console.warn('Tapiracuai Supabase favoritos delete:',dres.error.message);
     }
   }
-  async function pushStats(list){
-    var rows=(list||[]).filter(function(s){return isUuid(s.businessId)}).map(function(s){return {comercio_id:s.businessId,producto_id:isUuid(s.productId)?s.productId:null,fecha:s.date||new Date().toISOString().slice(0,10),visitas:Number(s.profileViews||0),clicks_whatsapp:Number(s.whatsappClicks||0),apariciones_busqueda:Number(s.searchViews||0),favoritos:Number(s.favorites||0)}})
-    for(var i=0;i<rows.length;i++){
-      var row=rows[i], q=client.from('estadisticas').select('id').eq('comercio_id',row.comercio_id).eq('fecha',row.fecha).limit(1);
-      q=row.producto_id?q.eq('producto_id',row.producto_id):q.is('producto_id',null);
-      var found=await q;
-      if(found.error){console.warn('Tapiracuai Supabase estadisticas:',found.error.message);continue}
-      var res=found.data&&found.data.length?await client.from('estadisticas').update(row).eq('id',found.data[0].id):await client.from('estadisticas').insert(row);
-      if(res.error)console.warn('Tapiracuai Supabase estadisticas:',res.error.message);
+  async function pushStats(){
+    return false;
+  }
+  async function recordStatEvent(businessId,type,productId){
+    if(!client||!isUuid(businessId))return false;
+    if(['visita','whatsapp','producto'].indexOf(type)===-1)return false;
+    var validProductId=isUuid(productId)?productId:null;
+    if(type==='producto'&&!validProductId)return false;
+    try{
+      var res=await client.rpc('registrar_evento_estadistica',{
+        p_comercio_id:businessId,
+        p_tipo:type,
+        p_producto_id:validProductId
+      });
+      if(res.error){console.warn('Tapiracuai Supabase estadisticas RPC:',res.error.message);return false}
+      return res.data===true;
+    }catch(error){
+      console.warn('Tapiracuai Supabase estadisticas RPC:',error&&error.message?error.message:error);
+      return false;
     }
   }
   async function recordInquiry(data){
@@ -655,7 +672,6 @@
         if(key===STORAGE_KEYS.promotions)await pushPromotions(next,prev);
         if(key===STORAGE_KEYS.reviews)await pushReviews(next,prev);
         if(key===STORAGE_KEYS.favorites)await pushFavorites(next,prev);
-        if(key===STORAGE_KEYS.stats)await pushStats(next);
         if(key===STORAGE_KEYS.clientProfiles)await pushClientProfiles(next);
       }catch(e){console.warn('Tapiracuai Supabase sync:',e.message)}
       finally{syncingKeys[key]=false}
@@ -664,13 +680,14 @@
   Storage.prototype.setItem=function(key,value){
     var previous=localStorage.getItem(key);
     rawSetItem.call(this,key,value);
-    if([STORAGE_KEYS.businesses,STORAGE_KEYS.products,STORAGE_KEYS.promotions,STORAGE_KEYS.favorites,STORAGE_KEYS.reviews,STORAGE_KEYS.stats,STORAGE_KEYS.clientProfiles].indexOf(key)>-1){
+    if([STORAGE_KEYS.businesses,STORAGE_KEYS.products,STORAGE_KEYS.promotions,STORAGE_KEYS.favorites,STORAGE_KEYS.reviews,STORAGE_KEYS.clientProfiles].indexOf(key)>-1){
       schedulePush(key,value,previous);
     }
   };
 
   async function uploadFile(bucket,file,path){
     if(!client||!file)return '';
+    validateImageFile(file);
     var user=await currentAuthUser();
     if(!user)throw new Error('Inicia sesion para subir imagenes.');
     var safeName=String(file.name||'imagen').replace(/[^a-zA-Z0-9._-]+/g,'-');
@@ -821,8 +838,10 @@
   }
 
   if(client){
-    client.auth.onAuthStateChange(function(){hydrateAll()});
-    hydrateAll();
+    var hydrateTimer=null;
+    function requestHydrateAll(){clearTimeout(hydrateTimer);hydrateTimer=setTimeout(hydrateAll,60)}
+    client.auth.onAuthStateChange(function(){requestHydrateAll()});
+    requestHydrateAll();
   }
 
   window.TapiracuaiSupabase={
@@ -858,6 +877,7 @@
     pushFavorites:pushFavorites,
     pushReviews:pushReviews,
     pushStats:pushStats,
+    recordStatEvent:recordStatEvent,
     recordInquiry:recordInquiry,
     saveUpdateRequestRecord:saveUpdateRequestRecord,
     fetchUpdateRequestsForBusiness:fetchUpdateRequestsForBusiness,
