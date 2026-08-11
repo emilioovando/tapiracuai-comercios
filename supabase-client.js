@@ -51,6 +51,7 @@
   function slugify(value,tail){return String(value||'tapiracuai').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,52)+(tail?'-'+String(tail).slice(0,8):'')}
   function n(value){var num=Number(value);return Number.isFinite(num)?num:null}
   function publicUrl(bucket,path){if(!client||!path)return '';return client.storage.from(bucket).getPublicUrl(path).data.publicUrl||''}
+  function hasOwn(obj,key){return Object.prototype.hasOwnProperty.call(obj||{},key)}
   function validateImageFile(file){
     if(!file)return;
     var allowed=['image/jpeg','image/png','image/webp'];
@@ -149,6 +150,7 @@
       adminNotice:meta.admin_notice||null,
       rating:row.rating_promedio||0,
       reviews:row.total_opiniones||0,
+      delivery:meta.delivery===true||(hasOwn(row,'delivery')&&row.delivery===true),
       scheduleNeedsReview:!!meta.schedule_needs_review,
       createdAt:row.created_at,
       updatedAt:row.updated_at
@@ -165,6 +167,7 @@
     var metadata=Object.assign({},b.metadata||{});
     metadata.local_source='tapiracuai_static_app';
     metadata.schedule_needs_review=b.scheduleNeedsReview===true;
+    if(hasOwn(b,'delivery'))metadata.delivery=b.delivery===true;
     if(b.suspensionReason)metadata.suspension_reason=b.suspensionReason;
     if(b.adminNotice)metadata.admin_notice=b.adminNotice;
     return {
@@ -211,16 +214,35 @@
     return payload;
   }
   function promoFromRow(row){
-    return {id:row.id,businessId:row.comercio_id,title:row.titulo,description:row.descripcion||'',discount:row.descuento||'',start:row.fecha_inicio||'',end:row.fecha_fin||'',active:row.estado==='active',featured:row.destacada===true,image:row.imagen_url||'',createdAt:row.created_at,updatedAt:row.updated_at};
+    return {
+      id:row.id,
+      businessId:row.comercio_id,
+      productId:row.producto_id||'',
+      title:row.titulo,
+      description:row.descripcion||'',
+      discount:row.descuento||'',
+      originalPrice:row.precio_original_gs==null?null:row.precio_original_gs,
+      offerPrice:row.precio_promocional_gs==null?null:row.precio_promocional_gs,
+      start:row.fecha_inicio||'',
+      end:row.fecha_fin||'',
+      active:row.estado==='active',
+      featured:row.destacada===true,
+      image:row.imagen_url||'',
+      imagePath:row.imagen_path||'',
+      metadata:row.metadata||{},
+      createdAt:row.created_at,
+      updatedAt:row.updated_at
+    };
   }
   function promoToRow(p){
     if(!p||!isUuid(p.businessId))return null;
     var id=isUuid(p.id)?p.id:uuid();
-    var payload={id:id,comercio_id:p.businessId,titulo:p.title||'Promocion',descripcion:p.description||'',descuento:p.discount||'',fecha_inicio:p.start||null,fecha_fin:p.end||null,imagen_url:p.image||'',estado:p.active===false?'paused':'active',destacada:p.featured===true,metadata:{}};
+    var originalPrice=p.originalPrice===''||p.originalPrice==null?null:normalizePriceValue(p.originalPrice);
+    var offerPrice=p.offerPrice===''||p.offerPrice==null?null:normalizePriceValue(p.offerPrice);
+    var metadata=Object.assign({},p.metadata||{});
+    var payload={id:id,comercio_id:p.businessId,titulo:p.title||'Promocion',descripcion:p.description||'',descuento:p.discount||'',precio_original_gs:originalPrice,precio_promocional_gs:offerPrice,fecha_inicio:p.start||null,fecha_fin:p.end||null,imagen_url:p.image||'',imagen_path:p.imagePath||'',estado:p.active===false?'paused':'active',destacada:p.featured===true,metadata:metadata};
     var productId=p.productId||p.productoId||p.producto_id||'';
-    var categoryId=p.categoryId||p.categoriaId||p.categoria_id||'';
     if(isUuid(productId))payload.producto_id=productId;
-    if(isUuid(categoryId))payload.categoria_id=categoryId;
     Object.keys(payload).forEach(function(key){if(payload[key]==='')delete payload[key]});
     return payload;
   }
@@ -705,6 +727,8 @@
     b=Object.assign({},b||{},{id:user.id,ownerUserId:user.id,email:user.email});
     var row=businessToRow(b,{id:user.id,email:user.email});
     if(!row)throw new Error('No se pudo preparar el comercio para guardar en Supabase.');
+    var existing=await client.from('comercios').select('metadata').eq('id',row.id).maybeSingle();
+    if(!existing.error&&existing.data)row.metadata=Object.assign({},existing.data.metadata||{},row.metadata||{});
     var res=await client.from('comercios').upsert(row,{onConflict:'id'}).select().single();
     if(res.error)throw res.error;
     var item=businessFromRow(res.data);
@@ -721,6 +745,8 @@
     if(!user||!isAdminEmail(user.email))throw new Error('Solo el administrador puede modificar comercios.');
     var row=businessToRow(b,{id:b&&b.ownerUserId,email:b&&b.email});
     if(!row)throw new Error('No se pudo preparar el comercio para guardar en Supabase.');
+    var existing=await client.from('comercios').select('metadata').eq('id',row.id).maybeSingle();
+    if(!existing.error&&existing.data)row.metadata=Object.assign({},existing.data.metadata||{},row.metadata||{});
     var res=await client.from('comercios').upsert(row,{onConflict:'id'}).select().single();
     if(res.error)throw res.error;
     var item=businessFromRow(res.data);

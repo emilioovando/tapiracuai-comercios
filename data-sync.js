@@ -22,6 +22,8 @@
     var owner=raw.owner||raw.responsable||bd.responsable||'';
     var address=raw.address||raw.direccion||bd.direccion||'Santaní, Paraguay';
     var cover=raw.cover||raw.portada||'';
+    var metadata=raw.metadata||{};
+    var delivery=raw.delivery===true||metadata.delivery===true;
     var suspended=raw.suspended===true||raw.estado==='suspended';
     var active=raw.active!==false&&raw.estado!=='inactive'&&!suspended;
     return {
@@ -46,6 +48,8 @@
       scheduleNeedsReview:raw.scheduleNeedsReview===true,
       paymentMethods:Array.isArray(raw.paymentMethods)?raw.paymentMethods:[],
       description:raw.description||'',
+      metadata:metadata,
+      delivery:delivery,
       logo:raw.logo||'',
       cover:cover,
       portada:cover,
@@ -113,6 +117,8 @@
         hours:c.hours,
         paymentMethods:c.paymentMethods,
         description:c.description,
+        metadata:c.metadata||{},
+        delivery:c.delivery===true||(c.metadata&&c.metadata.delivery===true),
         verified:c.verified,
         featured:c.featured,
         active:c.active!==false&&c.suspended!==true&&c.estado!=='suspended',
