@@ -37,6 +37,10 @@
     .metric{padding:14px}
     .metric span{display:block;color:var(--tds-muted);font-size:.8rem;font-weight:850}
     .metric strong{font-size:1.55rem}
+    .section-switch{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:6px;border:1px solid var(--tds-border);border-radius:20px;background:rgba(255,255,255,.88);box-shadow:0 10px 26px rgba(21,42,34,.06);box-sizing:border-box;overflow:hidden}
+    .section-switch button{box-sizing:border-box;min-width:0;min-height:46px;padding:0 6px;border:1px solid var(--tds-border);border-radius:16px;background:#fff;color:var(--tds-green);font-size:clamp(.68rem,2.7vw,.92rem);font-weight:950;line-height:1.05;text-align:center;white-space:normal;overflow-wrap:anywhere;cursor:pointer}
+    .section-switch button.active{border-color:var(--tds-green);background:var(--tds-green);color:#fff;box-shadow:0 10px 22px rgba(18,104,95,.16)}
+    .admin-main-layout{display:grid;grid-template-columns:1fr;gap:16px}
     .panel{padding:16px;overflow:hidden}
     .panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
     h2{margin:0;font-size:1.05rem}
@@ -52,6 +56,21 @@
     .row-title span{color:var(--tds-muted);font-size:.82rem;font-weight:780}
     .commerce-lines{display:grid;gap:3px;margin-top:2px}
     .commerce-lines span{display:flex;align-items:center;gap:6px;color:var(--tds-muted);font-size:.82rem;font-weight:820}
+    .client-toolbar{display:grid;gap:10px;margin-bottom:12px}
+    .client-search{width:100%;min-height:44px;border:1px solid var(--tds-border);border-radius:16px;background:#FBFDFC;color:var(--tds-text);font:inherit;font-size:.88rem;font-weight:760;padding:0 13px;outline:none}
+    .client-search:focus{border-color:var(--tds-green);box-shadow:0 0 0 4px rgba(18,104,95,.1)}
+    .client-card{display:grid;gap:12px;padding:12px;border:1px solid var(--tds-border);border-radius:20px;background:#fff;box-shadow:0 10px 26px rgba(21,42,34,.06)}
+    .client-main{display:grid;grid-template-columns:48px minmax(0,1fr);align-items:center;gap:12px}
+    .client-avatar{display:grid;place-items:center;width:48px;height:48px;border-radius:999px;background:#E8F6EF;color:var(--tds-green);font-size:.92rem;font-weight:950;overflow:hidden}
+    .client-avatar img{width:100%;height:100%;object-fit:cover}
+    .client-title{min-width:0}
+    .client-title strong,.client-title span{display:block}
+    .client-title strong{color:var(--tds-text);font-size:.98rem;font-weight:950;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .client-title span{color:var(--tds-muted);font-size:.78rem;font-weight:780;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .client-lines{display:grid;gap:4px;color:var(--tds-muted);font-size:.78rem;font-weight:800;line-height:1.25}
+    .client-activity{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+    .client-activity span{display:grid;gap:2px;padding:8px;border-radius:14px;background:#F7FAF8;color:var(--tds-muted);font-size:.7rem;font-weight:850;text-align:center}
+    .client-activity strong{color:var(--tds-text);font-size:.96rem;font-weight:950}
     .admin-whatsapp-clicks{margin:10px 0 8px;color:var(--tds-green);font-size:.82rem;font-weight:900}
     .badges{display:flex;flex-wrap:wrap;gap:6px}
     .badge{display:inline-flex;align-items:center;min-height:26px;border-radius:999px;padding:0 9px;background:#E8F6EF;color:var(--tds-green);font-size:.74rem;font-weight:950}
@@ -105,38 +124,56 @@
     .admin-history-item strong{display:block;color:var(--tds-text);font-size:.9rem;font-weight:900}
     .admin-history-item span{display:block;margin-top:5px;color:var(--tds-muted);font-size:.76rem;font-weight:780}
     .admin-history-item p{margin:8px 0 0;color:var(--tds-text);font-size:.84rem;font-weight:760;line-height:1.35}
-    .banner-admin{margin-top:16px}
-    .banner-admin-grid{display:grid;gap:14px}
-    .banner-form{display:grid;gap:12px}
+    .banner-admin{margin-top:14px}
+    .banner-admin-grid{display:grid;gap:12px}
+    .banner-form{display:grid;gap:10px}
     .banner-form label{display:grid;gap:6px;color:var(--tds-text);font-size:.78rem;font-weight:950}
-    .banner-form input,.banner-form textarea{width:100%;min-height:44px;border:1px solid var(--tds-border);border-radius:16px;background:#FBFDFC;color:var(--tds-text);font:inherit;font-size:.88rem;font-weight:760;padding:0 12px;outline:none}
+    .banner-unused-field{display:none!important}
+    .banner-help{margin:-4px 0 0;color:var(--tds-muted);font-size:.76rem;font-weight:760;line-height:1.35}
+    .banner-form input,.banner-form textarea,.banner-form select{width:100%;min-height:42px;border:1px solid var(--tds-border);border-radius:15px;background:#FBFDFC;color:var(--tds-text);font:inherit;font-size:.86rem;font-weight:760;padding:0 12px;outline:none}
     .banner-form textarea{min-height:78px;resize:vertical;padding:11px 12px;line-height:1.4}
-    .banner-form input:focus,.banner-form textarea:focus{border-color:var(--tds-green);box-shadow:0 0 0 4px rgba(18,104,95,.1)}
-    .banner-form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    .banner-active-row{display:flex!important;align-items:center;gap:10px;min-height:44px;padding:0 12px;border:1px solid var(--tds-border);border-radius:16px;background:#FBFDFC}
+    .banner-form input:focus,.banner-form textarea:focus,.banner-form select:focus{border-color:var(--tds-green);box-shadow:0 0 0 4px rgba(18,104,95,.1)}
+    .banner-form-row{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+    .banner-active-row{display:flex!important;align-items:center;gap:10px;min-height:42px;padding:0 12px;border:1px solid var(--tds-border);border-radius:15px;background:#FBFDFC}
     .banner-active-row input{width:18px;min-height:18px;height:18px;accent-color:var(--tds-green)}
-    .banner-preview{display:none;overflow:hidden;border:1px solid var(--tds-border);border-radius:20px;background:linear-gradient(135deg,#E8F6EF,#F7FAF8);box-shadow:0 10px 24px rgba(21,42,34,.07)}
-    .banner-preview.active{display:grid}
-    .banner-preview img{width:100%;max-height:160px;object-fit:cover;display:block}
-    .banner-preview div{padding:12px}
-    .banner-preview strong{display:block;color:var(--tds-text);font-size:1rem;font-weight:950}
-    .banner-preview p{margin:5px 0 0;color:var(--tds-muted);font-size:.84rem;font-weight:760;line-height:1.35}
-    .banner-admin-actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px}
+    .banner-preview{display:none;overflow:hidden;border:1px solid var(--tds-border);border-radius:24px;background:linear-gradient(135deg,#064638 0%,#075E45 52%,#0B6F52 100%);box-shadow:0 14px 30px rgba(7,94,69,.16)}
+    .banner-preview.active{display:block}
+    .banner-preview-card{display:block;aspect-ratio:2.6/1;min-height:0;color:#fff;overflow:hidden}
+    .banner-preview-media{width:100%;height:100%;min-width:0;overflow:hidden;background:rgba(255,255,255,.14)}
+    .banner-preview-media img{width:100%;height:100%;object-fit:cover;object-position:center;display:block}
+    .banner-admin-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:2px}
     .banner-list{display:grid;gap:10px}
-    .banner-row{display:grid;grid-template-columns:82px minmax(0,1fr);gap:12px;padding:12px;border:1px solid #EEF3F1;border-radius:20px;background:#fff;box-shadow:0 8px 22px rgba(21,42,34,.06)}
-    .banner-row__image{width:82px;height:82px;border-radius:16px;background:linear-gradient(135deg,#075E45,#16A05D);overflow:hidden}
+    .banner-row{display:grid;grid-template-columns:112px minmax(0,1fr);gap:12px;padding:11px;border:1px solid #EEF3F1;border-radius:20px;background:#fff;box-shadow:0 8px 22px rgba(21,42,34,.06)}
+    .banner-row__image{width:112px;aspect-ratio:120/45;border-radius:14px;background:linear-gradient(135deg,#075E45,#16A05D);overflow:hidden;align-self:start}
     .banner-row__image img{width:100%;height:100%;object-fit:cover;display:block}
-    .banner-row__body{min-width:0;display:grid;gap:7px}
+    .banner-row__body{min-width:0;display:grid;gap:8px}
     .banner-row__body h3{margin:0;color:var(--tds-text);font-size:.98rem;font-weight:950;line-height:1.18}
-    .banner-row__body p{margin:0;color:var(--tds-muted);font-size:.8rem;font-weight:760;line-height:1.35}
     .banner-row__meta{display:flex;flex-wrap:wrap;gap:6px;color:var(--tds-muted);font-size:.72rem;font-weight:850}
+    .banner-row.is-archived{opacity:.62}
     .banner-row__actions{display:flex;flex-wrap:wrap;gap:7px}
     .banner-row__actions .btn{min-height:32px;border-radius:11px;font-size:.72rem;padding:0 10px}
+    .banner-row__actions [data-delete-banner]{margin-left:auto}
+    .notification-admin{margin-top:14px}
+    .notification-admin-grid{display:grid;gap:12px}
+    .notification-form{display:grid;gap:10px}
+    .notification-form label{display:grid;gap:6px;color:var(--tds-text);font-size:.78rem;font-weight:950}
+    .notification-form input,.notification-form textarea,.notification-form select{width:100%;min-height:42px;border:1px solid var(--tds-border);border-radius:15px;background:#FBFDFC;color:var(--tds-text);font:inherit;font-size:.86rem;font-weight:760;padding:0 12px;outline:none}
+    .notification-form textarea{min-height:88px;resize:vertical;padding:11px 12px;line-height:1.4}
+    .notification-form-row{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+    .notification-list{display:grid;gap:10px}
+    .notification-row{display:grid;gap:9px;padding:12px;border:1px solid #EEF3F1;border-radius:20px;background:#fff;box-shadow:0 8px 22px rgba(21,42,34,.06)}
+    .notification-row.is-archived{opacity:.62}
+    .notification-row h3{margin:0;color:var(--tds-text);font-size:.98rem;font-weight:950;line-height:1.18}
+    .notification-row p{margin:0;color:var(--tds-muted);font-size:.82rem;font-weight:760;line-height:1.35}
+    .notification-row__meta{display:flex;flex-wrap:wrap;gap:6px;color:var(--tds-muted);font-size:.72rem;font-weight:850}
+    .notification-row__actions{display:flex;flex-wrap:wrap;gap:7px}
+    .notification-row__actions .btn{min-height:32px;border-radius:11px;font-size:.72rem;padding:0 10px}
     .empty{padding:16px;border:1px dashed var(--tds-border);border-radius:20px;color:var(--tds-muted);font-weight:850;text-align:center}
     .toast{position:fixed;left:50%;bottom:18px;z-index:20;transform:translateX(-50%);width:min(420px,calc(100% - 24px));padding:13px 15px;border-radius:18px;background:#152A22;color:white;box-shadow:0 18px 42px rgba(21,42,34,.22);font-weight:900;text-align:center}
     .hidden{display:none!important}
-    @media(max-width:560px){.banner-form-row,.banner-admin-actions{grid-template-columns:1fr}.banner-row{grid-template-columns:68px minmax(0,1fr)}.banner-row__image{width:68px;height:68px}}
-    @media(min-width:820px){.shell{padding:24px}.topbar{margin:-24px -24px 24px;padding:16px 24px}.metrics{grid-template-columns:repeat(3,minmax(0,1fr))}.layout{display:grid;grid-template-columns:1.2fr .8fr;gap:16px}.btn{padding:0 10px}.row{align-items:start}.banner-admin-grid{grid-template-columns:.86fr 1.14fr}}
+    @media(max-width:560px){.section-switch{gap:6px}.section-switch button{min-height:42px;padding:0 4px}.banner-form-row,.notification-form-row{grid-template-columns:1fr}.banner-row{grid-template-columns:92px minmax(0,1fr);gap:10px}.banner-row__image{width:92px}.banner-admin-actions .btn{min-height:40px}}
+    @media(max-width:340px){.section-switch{grid-template-columns:repeat(2,minmax(0,1fr))}.section-switch button{font-size:.82rem}}
+    @media(min-width:820px){.shell{padding:24px}.topbar{margin:-24px -24px 24px;padding:16px 24px}.metrics{grid-template-columns:repeat(3,minmax(0,1fr))}.layout{display:grid;grid-template-columns:1.2fr .8fr;gap:16px}.admin-main-layout{grid-template-columns:1fr}.btn{padding:0 10px}.row{align-items:start}.banner-admin-grid{grid-template-columns:.86fr 1.14fr}}
 </style>
 </head>
 <body>
@@ -161,34 +198,104 @@
         <div class="metric"><span>Total promociones</span><strong id="totalPromotions">0</strong></div>
       </section>
 
-      <div class="layout">
-        <section class="panel">
+      <nav class="section-switch" aria-label="Secciones del panel administrador">
+        <button class="active" type="button" data-admin-section="commerce">Comercios</button>
+        <button type="button" data-admin-section="clients">Clientes</button>
+        <button type="button" data-admin-section="banners">Banners</button>
+        <button type="button" data-admin-section="notifications">Notificaciones</button>
+      </nav>
+
+      <div class="admin-main-layout">
+        <section class="panel" id="commerceSection">
           <div class="panel-head"><h2>Comercios</h2><span class="muted" id="businessCountLabel">0 registrados</span></div>
           <div id="businessList" class="list"></div>
         </section>
 
+        <section class="panel hidden" id="clientsSection">
+          <div class="panel-head"><h2>Clientes registrados</h2><span class="muted" id="clientCountLabel">0 registrados</span></div>
+          <div class="client-toolbar">
+            <input id="clientSearch" class="client-search" type="search" placeholder="Buscar cliente, email, WhatsApp o ciudad" autocomplete="off">
+          </div>
+          <div id="clientList" class="list"></div>
+        </section>
+
       </div>
-      <section class="panel banner-admin hidden" aria-label="Banners informativos" aria-hidden="true">
-        <div class="panel-head"><h2>Banners informativos</h2><span class="muted" id="bannerCountLabel">0 activos</span></div>
+      <section class="panel banner-admin hidden" id="bannerSection" aria-label="Banners informativos" aria-hidden="true">
+        <div class="panel-head"><h2>Banners</h2><span class="muted" id="bannerCountLabel">0 activos</span></div>
         <div class="banner-admin-grid">
           <form id="bannerForm" class="banner-form">
             <input id="bannerId" type="hidden">
-            <label>Título<input id="bannerTitle" type="text" maxlength="90" placeholder="Ej: Feliz aniversario, San Estanislao" required></label>
-            <label>Descripción<textarea id="bannerDescription" maxlength="220" placeholder="Mensaje breve para clientes" required></textarea></label>
+            <label>Título interno<input id="bannerTitle" type="text" maxlength="90" placeholder="Ej: Aniversario Santaní" required></label>
+            <p class="banner-help">Solo para identificar el banner en el panel.</p>
+            <label class="banner-unused-field">Descripción<textarea id="bannerDescription" maxlength="220" placeholder="Mensaje breve para clientes"></textarea></label>
             <label>Imagen<input id="bannerImage" type="file" accept="image/png,image/jpeg,image/webp"></label>
+            <p class="banner-help">Tamaño recomendado: 1200 × 450 px</p>
+            <label class="banner-unused-field">Texto del botón<input id="bannerButtonText" type="text" maxlength="32" placeholder="Ej: Ver más"></label>
+            <div id="bannerPreview" class="banner-preview"></div>
+            <div class="banner-form-row">
+              <label>Destino<select id="bannerDestination">
+                <option value="none">Sin acción</option>
+                <option value="offers">Ver ofertas</option>
+                <option value="new">Ver nuevos</option>
+                <option value="delivery">Ver delivery</option>
+                <option value="business">Ver comercio</option>
+              </select></label>
+              <label id="bannerBusinessLabel" class="hidden">Comercio destino<select id="bannerBusinessTarget"></select></label>
+            </div>
             <div class="banner-form-row">
               <label>Inicio<input id="bannerStart" type="datetime-local" required></label>
               <label>Finalización<input id="bannerEnd" type="datetime-local" required></label>
             </div>
+            <label>Prioridad<input id="bannerPriority" type="number" min="0" max="100" step="1" value="0"></label>
+            <p class="banner-help">Mayor número = aparece primero.</p>
             <label class="banner-active-row"><input id="bannerActive" type="checkbox" checked> Banner activo</label>
-            <div id="bannerPreview" class="banner-preview"></div>
             <div class="banner-admin-actions">
-              <button id="bannerPreviewButton" class="btn soft" type="button">Vista previa</button>
-              <button id="bannerResetButton" class="btn soft" type="button">Limpiar</button>
+              <button id="bannerResetButton" class="btn soft" type="button">Cancelar</button>
               <button id="bannerSaveButton" class="btn primary" type="submit">Guardar banner</button>
             </div>
           </form>
           <div id="bannerList" class="banner-list"></div>
+        </div>
+      </section>
+      <section class="panel notification-admin hidden" id="notificationSection" aria-label="Notificaciones internas" aria-hidden="true">
+        <div class="panel-head"><h2>Notificaciones</h2><span class="muted" id="notificationCountLabel">0 activas</span></div>
+        <div class="notification-admin-grid">
+          <form id="notificationForm" class="notification-form">
+            <input id="notificationId" type="hidden">
+            <label>Título<input id="notificationTitle" type="text" maxlength="90" required></label>
+            <label>Mensaje<textarea id="notificationMessage" maxlength="260" required></textarea></label>
+            <div class="notification-form-row">
+              <label>Destinatarios<select id="notificationAudience">
+                <option value="all">Todos</option>
+                <option value="clientes">Clientes</option>
+                <option value="comercios">Comercios</option>
+                <option value="user">Usuario específico</option>
+              </select></label>
+              <label id="notificationUserLabel" class="hidden">Usuario destino<select id="notificationUserTarget"></select></label>
+            </div>
+            <div class="notification-form-row">
+              <label>Destino<select id="notificationDestination">
+                <option value="none">Sin acción</option>
+                <option value="offers">Ofertas</option>
+                <option value="new">Nuevos</option>
+                <option value="delivery">Delivery</option>
+                <option value="business">Comercio</option>
+                <option value="profile">Perfil</option>
+                <option value="favorites">Favoritos</option>
+              </select></label>
+              <label id="notificationBusinessLabel" class="hidden">Comercio destino<select id="notificationBusinessTarget"></select></label>
+            </div>
+            <div class="notification-form-row">
+              <label>Inicio<input id="notificationStart" type="datetime-local" required></label>
+              <label>Finalización<input id="notificationEnd" type="datetime-local" required></label>
+            </div>
+            <label class="banner-active-row"><input id="notificationActive" type="checkbox" checked> Notificación activa</label>
+            <div class="banner-admin-actions">
+              <button id="notificationResetButton" class="btn soft" type="button">Cancelar</button>
+              <button id="notificationSaveButton" class="btn primary" type="submit">Guardar notificación</button>
+            </div>
+          </form>
+          <div id="notificationList" class="notification-list"></div>
         </div>
       </section>
     </section>
@@ -208,6 +315,11 @@
   <div id="businessReviewsModal" class="admin-detail-modal hidden" role="dialog" aria-modal="true" aria-labelledby="businessReviewsTitle">
     <article class="admin-detail-card">
       <div id="businessReviewsContent"></div>
+    </article>
+  </div>
+  <div id="clientDetailModal" class="admin-detail-modal hidden" role="dialog" aria-modal="true" aria-labelledby="clientDetailTitle">
+    <article class="admin-detail-card">
+      <div id="clientDetailContent"></div>
     </article>
   </div>
   <div id="updateRequestModal" class="admin-detail-modal hidden" role="dialog" aria-modal="true" aria-labelledby="updateRequestTitle">
@@ -243,6 +355,8 @@
     function writeJson(key,value){localStorage.setItem(key,JSON.stringify(value))}
     var ADMIN_EMAIL='emiliojavi29@gmail.com';
     var updateRequestState={businessId:null,sending:false};
+    var adminClientsState={items:[],loading:false,error:''};
+    var adminActiveSection='commerce';
     function normalizeEmail(email){return String(email||'').trim().toLowerCase()}
     function isAdminEmail(email){return normalizeEmail(email)===ADMIN_EMAIL}
     function session(){return readJson('tapiracuai_auth_session',null)}
@@ -251,6 +365,27 @@
     function initials(name){return String(name||'TC').split(/\s+/).filter(Boolean).slice(0,2).map(function(x){return x[0]}).join('').toUpperCase()||'TC'}
     function toast(text){var el=$('toast');el.textContent=text;el.classList.remove('hidden');clearTimeout(window.__adminToast);window.__adminToast=setTimeout(function(){el.classList.add('hidden')},2300)}
     function authGuard(){var user=currentUser();if(!user||user.role!=='admin'||!isAdminEmail(user.email)){localStorage.removeItem('tapiracuai_auth_session');location.href='index.html';return false}return true}
+    function renderSectionSwitch(){
+      document.querySelectorAll('[data-admin-section]').forEach(function(btn){
+        var active=btn.dataset.adminSection===adminActiveSection;
+        btn.classList.toggle('active',active);
+        btn.setAttribute('aria-current',active?'page':'false');
+      });
+      if($('commerceSection'))$('commerceSection').classList.toggle('hidden',adminActiveSection!=='commerce');
+      if($('clientsSection'))$('clientsSection').classList.toggle('hidden',adminActiveSection!=='clients');
+      if($('bannerSection')){
+        $('bannerSection').classList.toggle('hidden',adminActiveSection!=='banners');
+        $('bannerSection').setAttribute('aria-hidden',adminActiveSection==='banners'?'false':'true');
+      }
+      if($('notificationSection')){
+        $('notificationSection').classList.toggle('hidden',adminActiveSection!=='notifications');
+        $('notificationSection').setAttribute('aria-hidden',adminActiveSection==='notifications'?'false':'true');
+      }
+    }
+    function setAdminSection(section){
+      adminActiveSection=section==='clients'||section==='banners'||section==='notifications'?section:'commerce';
+      renderSectionSwitch();
+    }
     function normalizeBusiness(b){b=Object.assign({},b||{});b.id=String(b.id||b.ownerUserId||b.email||'');b.ownerUserId=String(b.ownerUserId||b.id||'');b.name=b.name||b.nombre||'Mi comercio';b.nombre=b.name;b.categories=Array.isArray(b.categories)&&b.categories.length?b.categories:[b.rubro||b.category||'General'];b.rubro=b.rubro||b.categories[0]||'General';b.owner=b.owner||b.responsable||'Responsable no cargado';b.responsable=b.owner;b.address=b.address||b.direccion||'';b.direccion=b.address;b.cover=b.cover||b.portada||'';b.portada=b.cover;b.suspended=b.suspended===true||b.estado==='suspended';b.active=b.active!==false&&b.estado!=='inactive'&&!b.suspended;b.estado=b.suspended?'suspended':(b.active?'active':'inactive');b.createdAt=b.createdAt||new Date().toISOString();return b}
     function businesses(){return (window.TapiracuaiData?TapiracuaiData.allBusinesses():readJson('tapiracuai_businesses',[])).map(normalizeBusiness).filter(function(b){return b&&b.id})}
     function saveBusinesses(list){writeJson('tapiracuai_businesses',(list||[]).map(normalizeBusiness))}
@@ -259,8 +394,8 @@
     function promotions(){return readJson('tapiracuai_promotions',[])}
     function reviews(){return readJson('tapiracuai_reviews',[])}
     function stats(){return readJson('tapiracuai_stats',[])}
-    function banners(){return readJson('tapiracuai_info_banners',[])}
-    function saveBanners(list){writeJson('tapiracuai_info_banners',list||[])}
+    function banners(){return bannerState.items||[]}
+    function saveBanners(list){bannerState.items=list||[]}
     function updateRequests(){return readJson('tapiracuai_update_requests',[])}
     function saveUpdateRequests(list){writeJson('tapiracuai_update_requests',list||[]);document.dispatchEvent(new CustomEvent('tapiracuai:update-requests'))}
     function adminHistory(){return readJson('tapiracuai_admin_history',[])}
@@ -271,26 +406,65 @@
     function adminNotice(type,message){return {type:type,message:message||'',createdAt:new Date().toISOString(),admin:adminName(),status:'unread'}}
     function users(){return readJson('tapiracuai_users',[]).filter(function(u){return !isAdminEmail(u&&u.email)})}
     function userProfiles(u){var profiles=Array.isArray(u&&u.profiles)?u.profiles.slice():[];if(u&&u.role&&profiles.indexOf(u.role)===-1)profiles.push(u.role);return profiles.filter(function(v,i,a){return ['cliente','comercio','admin'].indexOf(v)>-1&&a.indexOf(v)===i})}
-    function clientCount(){var seen={};users().forEach(function(u){if(!u||u.active===false||u.activo===false)return;var profiles=userProfiles(u);if(profiles.indexOf('cliente')>-1)seen[String(u.id||normalizeEmail(u.email))]=true});return Object.keys(seen).length}
+    function clientCount(){return adminClientsState.items.length}
     function whatsappClicksForBusiness(id){return stats().filter(function(s){return String(s.businessId||s.comercio_id||'')===String(id)}).reduce(function(total,s){return total+Number(s.whatsappClicks||s.clicks_whatsapp||0)},0)}
     function roleLabelForBusiness(b){var ownerId=String(b.ownerUserId||b.id||''),email=normalizeEmail(b.email||''),user=users().find(function(u){return String(u.id||'')===ownerId||normalizeEmail(u.email)===email}),profiles=userProfiles(user||{role:'comercio',profiles:['comercio']});return profiles.indexOf('cliente')>-1&&profiles.indexOf('comercio')>-1?'Cliente y comerciante':(profiles.indexOf('comercio')>-1?'Comerciante':'Cliente')}
     function reviewStars(value){var count=Math.max(1,Math.min(5,Number(value||5)));return Array(count+1).join('&#9733;')}
     function reviewDate(value){if(!value)return 'Sin fecha';var d=new Date(value);if(isNaN(d.getTime()))return String(value).slice(0,10);return d.toLocaleDateString('es-PY',{day:'2-digit',month:'2-digit',year:'numeric'})}
     function formatDate(value){if(!value)return 'No disponible';var d=new Date(value);if(isNaN(d.getTime()))return String(value);return d.toLocaleDateString('es-PY',{day:'2-digit',month:'2-digit',year:'numeric'})}
     function formatDateTime(value){if(!value)return 'Sin fecha';var d=new Date(value);if(isNaN(d.getTime()))return String(value);return d.toLocaleString('es-PY',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}
-    var BANNERS_ENABLED=false;
-    var bannerState={image:'',saving:false};
+    function clientName(c){return [c.name,c.lastName].filter(Boolean).join(' ').trim()||c.email||'Cliente'}
+    function clientAvatar(c){return c.photo?'<img src="'+escapeHtml(c.photo)+'" alt="">':initials(clientName(c))}
+    function clientSearchTerm(){return normalizeEmail($('clientSearch')&&$('clientSearch').value||'')}
+    function filteredClients(){var term=clientSearchTerm();var list=adminClientsState.items.slice();if(!term)return list;return list.filter(function(c){return [c.name,c.lastName,c.email,c.whatsapp,c.city,c.neighborhood].join(' ').toLowerCase().indexOf(term)>-1})}
+    function renderClientCard(c){var name=clientName(c),place=[c.city,c.neighborhood].filter(Boolean).join(' / ')||'Ciudad no cargada',last=c.lastLoginAt?formatDateTime(c.lastLoginAt):'Sin registro';return '<article class="client-card"><div class="client-main"><div class="client-avatar">'+clientAvatar(c)+'</div><div class="client-title"><strong>'+escapeHtml(name)+'</strong><span>'+escapeHtml(c.email||'Email no cargado')+'</span></div></div><div class="client-lines"><span>WhatsApp: '+escapeHtml(c.whatsapp||'No cargado')+'</span><span>'+escapeHtml(place)+'</span><span>Registro: '+escapeHtml(formatDate(c.createdAt))+' · Último acceso: '+escapeHtml(last)+'</span></div><div class="badges"><span class="badge '+(c.active?'':'off')+'">'+(c.active?'Activo':'Inactivo')+'</span><span class="badge '+(c.completed?'blue':'warn')+'">'+(c.completed?'Perfil completo':'Incompleto')+'</span>'+(c.requiresReview?'<span class="badge warn">Requiere revisión</span>':'')+'</div><div class="client-activity"><span><strong>'+Number(c.inquiriesCount||0)+'</strong>consultas</span><span><strong>'+Number(c.reviewsCount||0)+'</strong>reseñas</span><span><strong>'+Number(c.favoritesCount||0)+'</strong>favoritos</span></div><div class="actions"><button class="btn soft" type="button" data-client-detail="'+escapeHtml(c.userId)+'">Ver perfil</button></div></article>'}
+    function renderClients(){if($('clientCountLabel'))$('clientCountLabel').textContent=adminClientsState.loading?'Cargando...':adminClientsState.items.length+' registrados';if(!$('clientList'))return;if(adminClientsState.loading){$('clientList').innerHTML='<div class="empty">Cargando clientes registrados...</div>';return}if(adminClientsState.error){$('clientList').innerHTML='<div class="empty">'+escapeHtml(adminClientsState.error)+'</div>';return}var list=filteredClients();$('clientList').innerHTML=list.length?list.map(renderClientCard).join(''):'<div class="empty">No se encontraron clientes registrados.</div>';document.querySelectorAll('[data-client-detail]').forEach(function(btn){btn.onclick=function(){openClientDetails(btn.dataset.clientDetail)}})}
+    function openClientDetails(id){var c=adminClientsState.items.find(function(item){return String(item.userId)===String(id)});if(!c)return;var name=clientName(c),reasons=Array.isArray(c.reviewReasons)?c.reviewReasons:[];var detail=detailField('Nombre',name)+detailField('Email',c.email)+detailField('WhatsApp',c.whatsapp)+detailField('Ciudad',c.city)+detailField('Barrio',c.neighborhood)+detailField('Fecha registro',formatDate(c.createdAt))+detailField('Último acceso',c.lastLoginAt?formatDateTime(c.lastLoginAt):'Sin registro')+detailField('Estado',c.active?'Activo':'Inactivo')+detailField('Perfil',c.completed?'Completo':'Incompleto')+detailField('Consultas',Number(c.inquiriesCount||0))+detailField('Reseñas',Number(c.reviewsCount||0))+detailField('Favoritos',Number(c.favoritesCount||0));$('clientDetailContent').innerHTML='<div class="admin-detail-body"><div class="admin-detail-head"><div class="admin-detail-logo">'+clientAvatar(c)+'</div><div class="admin-detail-title"><h3 id="clientDetailTitle">'+escapeHtml(name)+'</h3><p>'+escapeHtml(c.email||'Cliente registrado')+'</p></div><button class="admin-detail-close" type="button" data-close-client-detail aria-label="Cerrar">x</button></div><div class="badges"><span class="badge '+(c.active?'':'off')+'">'+(c.active?'Activo':'Inactivo')+'</span><span class="badge '+(c.completed?'blue':'warn')+'">'+(c.completed?'Perfil completo':'Incompleto')+'</span>'+(c.requiresReview?'<span class="badge warn">Requiere revisión</span>':'')+'</div><div class="admin-detail-grid">'+detail+'</div>'+(reasons.length?'<div class="admin-history-list"><div class="admin-history-item"><strong>Motivos de revisión</strong><p>'+reasons.map(escapeHtml).join('<br>')+'</p></div></div>':'')+'</div>';$('clientDetailModal').classList.remove('hidden');document.querySelectorAll('[data-close-client-detail]').forEach(function(btn){btn.onclick=closeClientDetails})}
+    function closeClientDetails(){$('clientDetailModal').classList.add('hidden');$('clientDetailContent').innerHTML=''}
+    async function loadAdminClients(){if(!(window.TapiracuaiSupabase&&TapiracuaiSupabase.available&&TapiracuaiSupabase.fetchAdminClients)){adminClientsState={items:[],loading:false,error:'No se pudo cargar clientes: RPC administrativa no disponible.'};renderAll();return}adminClientsState.loading=true;adminClientsState.error='';renderClients();renderSummary();try{var items=await TapiracuaiSupabase.fetchAdminClients();adminClientsState={items:items||[],loading:false,error:''}}catch(error){adminClientsState={items:[],loading:false,error:error&&error.message?error.message:'No se pudo cargar clientes registrados.'}}renderAll()}
+    var BANNERS_ENABLED=true;
+    var bannerState={items:[],image:'',imagePath:'',saving:false};
+    var notificationState={items:[],saving:false};
     function asuncionParts(date){var parts=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Asuncion',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(date).reduce(function(a,p){a[p.type]=p.value;return a},{});return {year:parts.year,month:parts.month,day:parts.day,hour:parts.hour==='24'?'00':parts.hour,minute:parts.minute}}
     function asuncionOffsetMinutes(date){var p=asuncionParts(date);return (Date.UTC(Number(p.year),Number(p.month)-1,Number(p.day),Number(p.hour),Number(p.minute))-date.getTime())/60000}
     function datetimeLocalToAsuncionIso(value){if(!value)return '';var parts=String(value).split('T'),d=(parts[0]||'').split('-').map(Number),t=(parts[1]||'00:00').split(':').map(Number);var guess=Date.UTC(d[0],d[1]-1,d[2],t[0]||0,t[1]||0);var offset=asuncionOffsetMinutes(new Date(guess));var utc=guess-offset*60000;offset=asuncionOffsetMinutes(new Date(utc));return new Date(guess-offset*60000).toISOString()}
     function isoToAsuncionInput(value){if(!value)return '';var d=new Date(value);if(isNaN(d.getTime()))return '';var p=asuncionParts(d);return p.year+'-'+p.month+'-'+p.day+'T'+p.hour+':'+p.minute}
-    function bannerStatus(b){var now=Date.now(),start=new Date(b.startAt||0).getTime(),end=new Date(b.endAt||0).getTime();if(b.active===false)return 'Inactivo';if(Number.isFinite(start)&&start>now)return 'Programado';if(Number.isFinite(end)&&end<now)return 'Finalizado';return 'Vigente'}
+    function bannerStatus(b){var now=Date.now(),start=new Date(b.startAt||0).getTime(),end=new Date(b.endAt||0).getTime();if(b.archived===true)return 'Archivado';if(b.active===false)return 'Inactivo';if(Number.isFinite(start)&&start>now)return 'Programado';if(Number.isFinite(end)&&end<now)return 'Finalizado';return 'Vigente'}
+    function bannerDestinationLabel(value){return {none:'Sin acción',offers:'Ver ofertas',new:'Ver nuevos',delivery:'Ver delivery',business:'Ver comercio'}[value]||'Sin acción'}
     function bannerImageMarkup(src){return src?'<img src="'+escapeHtml(src)+'" alt="">':''}
-    function renderBannerPreview(data){var el=$('bannerPreview');if(!el)return;data=data||formBannerData(false);if(!data.title&&!data.description&&!data.image){el.classList.remove('active');el.innerHTML='';return}el.innerHTML=bannerImageMarkup(data.image)+'<div><strong>'+escapeHtml(data.title||'Titulo del banner')+'</strong><p>'+escapeHtml(data.description||'Descripcion breve del banner')+'</p></div>';el.classList.add('active')}
-    function formBannerData(convertDates){return {id:$('bannerId')&&$('bannerId').value||'',title:$('bannerTitle')&&$('bannerTitle').value.trim()||'',description:$('bannerDescription')&&$('bannerDescription').value.trim()||'',image:bannerState.image||'',startAt:convertDates?datetimeLocalToAsuncionIso($('bannerStart').value):$('bannerStart').value,endAt:convertDates?datetimeLocalToAsuncionIso($('bannerEnd').value):$('bannerEnd').value,active:!$('bannerActive')||$('bannerActive').checked}}
-    function resetBannerForm(){if(!$('bannerForm'))return;$('bannerForm').reset();$('bannerId').value='';$('bannerActive').checked=true;bannerState.image='';bannerState.saving=false;$('bannerSaveButton').disabled=false;$('bannerSaveButton').textContent='Guardar banner';renderBannerPreview({})}
-    function renderBannersAdmin(){if(!BANNERS_ENABLED)return;var list=banners().sort(function(a,b){return new Date(b.createdAt||b.updatedAt||b.startAt||0)-new Date(a.createdAt||a.updatedAt||a.startAt||0)}),active=list.filter(function(b){return bannerStatus(b)==='Vigente'}).length;if($('bannerCountLabel'))$('bannerCountLabel').textContent=active+' vigentes';if(!$('bannerList'))return;$('bannerList').innerHTML=list.length?list.map(function(b){var status=bannerStatus(b);return '<article class="banner-row"><div class="banner-row__image">'+bannerImageMarkup(b.image)+'</div><div class="banner-row__body"><h3>'+escapeHtml(b.title||'Banner sin título')+'</h3><p>'+escapeHtml(b.description||'Sin descripción')+'</p><div class="banner-row__meta"><span>'+escapeHtml(status)+'</span><span>'+escapeHtml(formatDateTime(b.startAt))+'</span><span>'+escapeHtml(formatDateTime(b.endAt))+'</span></div><div class="banner-row__actions"><button class="btn soft" data-edit-banner="'+escapeHtml(b.id)+'">Editar</button><button class="btn soft" data-toggle-banner="'+escapeHtml(b.id)+'">'+(b.active===false?'Activar':'Desactivar')+'</button><button class="btn danger" data-delete-banner="'+escapeHtml(b.id)+'">Eliminar</button></div></div></article>'}).join(''):'<div class="empty">Todavía no hay banners informativos cargados.</div>';bindBannerActions()}
-    async function refreshBanners(){if(!BANNERS_ENABLED)return;if(window.TapiracuaiSupabase&&TapiracuaiSupabase.available&&TapiracuaiSupabase.fetchInfoBanners){try{await TapiracuaiSupabase.fetchInfoBanners()}catch(error){console.warn('Tapiracuai banners admin:',error&&error.message?error.message:error)}}renderBannersAdmin()}
+    function syncBannerBusinessField(){var destination=$('bannerDestination')&&$('bannerDestination').value||'none';if($('bannerBusinessLabel'))$('bannerBusinessLabel').classList.toggle('hidden',destination!=='business')}
+    function fillBannerBusinessOptions(){var select=$('bannerBusinessTarget');if(!select)return;var current=select.value;select.innerHTML=businesses().map(function(b){return '<option value="'+escapeHtml(b.id)+'">'+escapeHtml(b.name||'Comercio')+'</option>'}).join('');if(current)select.value=current}
+    function renderBannerPreview(data){var el=$('bannerPreview');if(!el)return;data=data||formBannerData(false);if(!data.image){el.classList.remove('active');el.innerHTML='';return}el.innerHTML='<article class="banner-preview-card"><div class="banner-preview-media">'+bannerImageMarkup(data.image)+'</div></article>';el.classList.add('active')}
+    function formBannerData(convertDates){var destination=$('bannerDestination')&&$('bannerDestination').value||'none';return {id:$('bannerId')&&$('bannerId').value||'',title:$('bannerTitle')&&$('bannerTitle').value.trim()||'',description:$('bannerDescription')&&$('bannerDescription').value.trim()||'',image:bannerState.image||'',imagePath:bannerState.imagePath||'',buttonText:$('bannerButtonText')&&$('bannerButtonText').value.trim()||'',destinationType:destination,destinationValue:destination==='business'&&$('bannerBusinessTarget')?$('bannerBusinessTarget').value:'',startAt:convertDates?datetimeLocalToAsuncionIso($('bannerStart').value):$('bannerStart').value,endAt:convertDates?datetimeLocalToAsuncionIso($('bannerEnd').value):$('bannerEnd').value,priority:Math.max(0,Math.min(100,Number($('bannerPriority')&&$('bannerPriority').value||0))),active:!$('bannerActive')||$('bannerActive').checked}}
+    function resetBannerForm(){if(!$('bannerForm'))return;$('bannerForm').reset();$('bannerId').value='';$('bannerActive').checked=true;if($('bannerPriority'))$('bannerPriority').value='0';bannerState.image='';bannerState.imagePath='';bannerState.saving=false;$('bannerSaveButton').disabled=false;$('bannerSaveButton').textContent='Guardar banner';syncBannerBusinessField();renderBannerPreview({})}
+    function renderBannersAdmin(){if(!BANNERS_ENABLED)return;fillBannerBusinessOptions();var list=banners().sort(function(a,b){return Number(a.archived===true)-Number(b.archived===true)||Number(b.priority||0)-Number(a.priority||0)||new Date(b.createdAt||b.updatedAt||b.startAt||0)-new Date(a.createdAt||a.updatedAt||a.startAt||0)}),active=list.filter(function(b){return bannerStatus(b)==='Vigente'}).length;if($('bannerCountLabel'))$('bannerCountLabel').textContent=active+' vigentes';if(!$('bannerList'))return;$('bannerList').innerHTML=list.length?list.map(function(b){var status=bannerStatus(b),vigencia=formatDateTime(b.startAt)+' - '+formatDateTime(b.endAt),actions=b.archived?'<button class="btn soft" type="button" data-unarchive-banner="'+escapeHtml(b.id)+'">Desarchivar</button><button class="btn danger" type="button" data-delete-banner="'+escapeHtml(b.id)+'">Eliminar</button>':'<button class="btn soft" type="button" data-edit-banner="'+escapeHtml(b.id)+'">Editar</button><button class="btn soft" type="button" data-toggle-banner="'+escapeHtml(b.id)+'">'+(b.active===false?'Activar':'Desactivar')+'</button><button class="btn danger" type="button" data-archive-banner="'+escapeHtml(b.id)+'">Archivar</button><button class="btn danger" type="button" data-delete-banner="'+escapeHtml(b.id)+'">Eliminar</button>';return '<article class="banner-row '+(b.archived?'is-archived':'')+'"><div class="banner-row__image">'+bannerImageMarkup(b.image)+'</div><div class="banner-row__body"><h3>'+escapeHtml(b.title||'Banner sin título')+'</h3><div class="banner-row__meta"><span>'+escapeHtml(status)+'</span><span>Vigencia '+escapeHtml(vigencia)+'</span><span>Prioridad '+escapeHtml(b.priority||0)+'</span><span>'+escapeHtml(bannerDestinationLabel(b.destinationType))+'</span></div><div class="banner-row__actions">'+actions+'</div></div></article>'}).join(''):'<div class="empty">Todavía no hay banners informativos cargados.</div>';bindBannerActions()}
+    async function refreshBanners(){if(!BANNERS_ENABLED)return;if(window.TapiracuaiSupabase&&TapiracuaiSupabase.available&&TapiracuaiSupabase.fetchAdminBanners){try{saveBanners(await TapiracuaiSupabase.fetchAdminBanners())}catch(error){console.warn('Tapiracuai banners admin:',error&&error.message?error.message:error);toast(error&&error.message?error.message:'No se pudieron cargar banners')}}renderBannersAdmin()}
+    function notificationAudienceLabel(value){return {all:'Todos',clientes:'Clientes',comercios:'Comercios',user:'Usuario específico'}[value]||'Todos'}
+    function notificationDestinationLabel(value){return {none:'Sin acción',offers:'Ofertas',new:'Nuevos',delivery:'Delivery',business:'Comercio',profile:'Perfil',favorites:'Favoritos'}[value]||'Sin acción'}
+    function notifications(){return notificationState.items||[]}
+    function saveNotifications(list){notificationState.items=list||[]}
+    function notificationStatus(n){var now=Date.now(),start=new Date(n.startAt||0).getTime(),end=new Date(n.endAt||0).getTime();if(n.archived===true)return 'Archivada';if(n.active===false)return 'Inactiva';if(Number.isFinite(start)&&start>now)return 'Programada';if(Number.isFinite(end)&&end<now)return 'Finalizada';return 'Activa'}
+    function syncNotificationFields(){var aud=$('notificationAudience')&&$('notificationAudience').value||'all',dest=$('notificationDestination')&&$('notificationDestination').value||'none';if($('notificationUserLabel'))$('notificationUserLabel').classList.toggle('hidden',aud!=='user');if($('notificationBusinessLabel'))$('notificationBusinessLabel').classList.toggle('hidden',dest!=='business')}
+    function fillNotificationTargets(){
+      var userSelect=$('notificationUserTarget'),businessSelect=$('notificationBusinessTarget');
+      if(userSelect){
+        var current=userSelect.value,seen={};
+        var opts=[];
+        adminClientsState.items.forEach(function(c){if(c.userId&&!seen[c.userId]){seen[c.userId]=true;opts.push({id:c.userId,label:clientName(c)+' · '+(c.email||'cliente')})}});
+        businesses().forEach(function(b){var id=b.ownerUserId||b.id;if(id&&!seen[id]){seen[id]=true;opts.push({id:id,label:(b.owner||b.name||'Comercio')+' · comercio'})}});
+        userSelect.innerHTML=opts.map(function(o){return '<option value="'+escapeHtml(o.id)+'">'+escapeHtml(o.label)+'</option>'}).join('');
+        if(current)userSelect.value=current;
+      }
+      if(businessSelect){
+        var currentBusiness=businessSelect.value;
+        businessSelect.innerHTML=businesses().map(function(b){return '<option value="'+escapeHtml(b.id)+'">'+escapeHtml(b.name||'Comercio')+'</option>'}).join('');
+        if(currentBusiness)businessSelect.value=currentBusiness;
+      }
+    }
+    function formNotificationData(convertDates){var audience=$('notificationAudience')&&$('notificationAudience').value||'all',destination=$('notificationDestination')&&$('notificationDestination').value||'none';return {id:$('notificationId')&&$('notificationId').value||'',title:$('notificationTitle')&&$('notificationTitle').value.trim()||'',message:$('notificationMessage')&&$('notificationMessage').value.trim()||'',audience:audience,userId:audience==='user'&&$('notificationUserTarget')?$('notificationUserTarget').value:'',destinationType:destination,destinationValue:destination==='business'&&$('notificationBusinessTarget')?$('notificationBusinessTarget').value:'',startAt:convertDates?datetimeLocalToAsuncionIso($('notificationStart').value):$('notificationStart').value,endAt:convertDates?datetimeLocalToAsuncionIso($('notificationEnd').value):$('notificationEnd').value,active:!$('notificationActive')||$('notificationActive').checked}}
+    function resetNotificationForm(){if(!$('notificationForm'))return;$('notificationForm').reset();$('notificationId').value='';$('notificationActive').checked=true;notificationState.saving=false;if($('notificationSaveButton')){$('notificationSaveButton').disabled=false;$('notificationSaveButton').textContent='Guardar notificación'}syncNotificationFields();fillNotificationTargets()}
+    function renderNotificationsAdmin(){fillNotificationTargets();var list=notifications().sort(function(a,b){return Number(a.archived===true)-Number(b.archived===true)||new Date(b.createdAt||b.updatedAt||b.startAt||0)-new Date(a.createdAt||a.updatedAt||a.startAt||0)}),active=list.filter(function(n){return notificationStatus(n)==='Activa'}).length;if($('notificationCountLabel'))$('notificationCountLabel').textContent=active+' activas';if(!$('notificationList'))return;$('notificationList').innerHTML=list.length?list.map(function(n){var status=notificationStatus(n),vigencia=formatDateTime(n.startAt)+' - '+formatDateTime(n.endAt);return '<article class="notification-row '+(n.archived?'is-archived':'')+'"><h3>'+escapeHtml(n.title||'Notificación sin título')+'</h3><p>'+escapeHtml(n.message||'')+'</p><div class="notification-row__meta"><span>'+escapeHtml(notificationAudienceLabel(n.audience))+'</span><span>'+escapeHtml(status)+'</span><span>Vigencia '+escapeHtml(vigencia)+'</span><span>'+escapeHtml(notificationDestinationLabel(n.destinationType))+'</span></div><div class="notification-row__actions">'+(n.archived?'':'<button class="btn soft" type="button" data-edit-notification="'+escapeHtml(n.id)+'">Editar</button><button class="btn danger" type="button" data-archive-notification="'+escapeHtml(n.id)+'">Archivar</button>')+'</div></article>'}).join(''):'<div class="empty">Todavía no hay notificaciones internas cargadas.</div>';bindNotificationActions()}
+    async function refreshNotificationsAdmin(){if(window.TapiracuaiSupabase&&TapiracuaiSupabase.available&&TapiracuaiSupabase.fetchAdminNotifications){try{saveNotifications(await TapiracuaiSupabase.fetchAdminNotifications())}catch(error){console.warn('Tapiracuai notificaciones admin:',error&&error.message?error.message:error);toast(error&&error.message?error.message:'No se pudieron cargar notificaciones')}}renderNotificationsAdmin()}
     function scheduleText(b){if(b.hours)return b.hours;if(b.schedule){try{return typeof b.schedule==='string'?b.schedule:JSON.stringify(b.schedule)}catch(e){return 'Horario cargado'}}return 'No cargado'}
     function detailField(label,value){return '<div class="admin-detail-field"><span>'+escapeHtml(label)+'</span><strong>'+escapeHtml(value||'No cargado')+'</strong></div>'}
     function renderSummary(){var bs=businesses();$('totalBusinesses').textContent=bs.length;$('totalClients').textContent=clientCount();$('totalPromotions').textContent=promotions().length;$('businessCountLabel').textContent=bs.length+' registrados'}
@@ -298,9 +472,9 @@
     function reviewBusinessId(r){return String(r.businessId||r.business_id||r.comercio_id||r.comercioId||'')}
     function reviewsForBusiness(id){return reviews().map(function(r,i){return Object.assign({__index:i},r)}).filter(function(r){return reviewBusinessId(r)===String(id)})}
     function renderBusinessReviewCard(r){var name=r.clientName||r.nombre_publico||r.userName||r.user_name||'Cliente';var date=r.date||r.createdAt||r.created_at;var comment=r.comment||r.comentario||'Sin comentario';var rating=r.stars||r.calificacion||r.rating||5;return '<article class="admin-review-card"><div class="admin-review-head"><div><h3 class="admin-review-name">'+escapeHtml(name)+'</h3><div class="admin-review-meta"><span class="admin-review-stars" aria-label="Calificacion de '+Number(rating)+' estrellas">'+reviewStars(rating)+'</span><span class="admin-review-date">'+escapeHtml(reviewDate(date))+'</span></div></div><span class="admin-review-type">Reseña</span></div><p class="admin-review-text">'+escapeHtml(comment)+'</p><div class="admin-review-actions"><button class="btn danger" data-delete-business-review="'+r.__index+'">Eliminar reseña</button></div></article>'}
-    async function persistBusiness(item){
+    async function persistBusiness(item,action,message){
       if(window.TapiracuaiSupabase&&TapiracuaiSupabase.available&&TapiracuaiSupabase.saveAdminBusinessRecord){
-        return await TapiracuaiSupabase.saveAdminBusinessRecord(item);
+        return await TapiracuaiSupabase.saveAdminBusinessRecord(item,{action:action,message:message||''});
       }
       return item;
     }
@@ -312,7 +486,7 @@
       item=normalizeBusiness(item);
       item.updatedAt=new Date().toISOString();
       try{
-        var saved=normalizeBusiness(await persistBusiness(item));
+        var saved=normalizeBusiness(await persistBusiness(item,action,message));
         list=list.filter(function(b){return String(b.id)!==String(id)});
         list.unshift(saved);
         saveBusinesses(list);
@@ -406,32 +580,125 @@
         $('bannerId').value=item.id||'';
         $('bannerTitle').value=item.title||'';
         $('bannerDescription').value=item.description||'';
+        if($('bannerButtonText'))$('bannerButtonText').value=item.buttonText||'';
+        if($('bannerDestination'))$('bannerDestination').value=item.destinationType||'none';
+        fillBannerBusinessOptions();
+        if($('bannerBusinessTarget'))$('bannerBusinessTarget').value=item.destinationValue||'';
         $('bannerStart').value=isoToAsuncionInput(item.startAt);
         $('bannerEnd').value=isoToAsuncionInput(item.endAt);
+        if($('bannerPriority'))$('bannerPriority').value=String(item.priority||0);
         $('bannerActive').checked=item.active!==false;
         bannerState.image=item.image||'';
+        bannerState.imagePath=item.imagePath||'';
+        syncBannerBusinessField();
         renderBannerPreview(item);
         $('bannerTitle').focus();
       }});
       document.querySelectorAll('[data-toggle-banner]').forEach(function(btn){btn.onclick=async function(){
         var id=btn.dataset.toggleBanner,item=banners().find(function(b){return String(b.id)===String(id)});
         if(!item)return;
-        item=Object.assign({},item,{active:item.active===false,updatedAt:new Date().toISOString()});
-        try{if(window.TapiracuaiSupabase&&TapiracuaiSupabase.available&&TapiracuaiSupabase.saveInfoBannerRecord)item=await TapiracuaiSupabase.saveInfoBannerRecord(item);else throw new Error('Supabase no esta disponible para guardar banners.')}
+        var nextActive=item.active===false;
+        try{if(window.TapiracuaiSupabase&&TapiracuaiSupabase.available&&TapiracuaiSupabase.setAdminBannerActive)item=await TapiracuaiSupabase.setAdminBannerActive(id,nextActive);else throw new Error('Supabase no está disponible para actualizar banners.')}
         catch(error){toast(error&&error.message?error.message:'No se pudo actualizar el banner');return}
+        if(!item||!item.id)item=Object.assign({},banners().find(function(b){return String(b.id)===String(id)})||{id:id},{active:nextActive});
         saveBanners(banners().filter(function(b){return String(b.id)!==String(id)}).concat([item]));
         renderBannersAdmin();
         toast('Banner actualizado');
       }});
+      document.querySelectorAll('[data-archive-banner]').forEach(function(btn){btn.onclick=async function(){
+        var id=btn.dataset.archiveBanner;
+        if(!confirm('Archivar este banner informativo?'))return;
+        var archived=null;
+        try{if(window.TapiracuaiSupabase&&TapiracuaiSupabase.available&&TapiracuaiSupabase.archiveAdminBanner)archived=await TapiracuaiSupabase.archiveAdminBanner(id);else throw new Error('Supabase no está disponible para archivar banners.')}
+        catch(error){toast(error&&error.message?error.message:'No se pudo archivar el banner');return}
+        var list=banners().filter(function(b){return String(b.id)!==String(id)});
+        if(archived&&archived.id)list.push(archived);
+        else list.push(Object.assign({},banners().find(function(b){return String(b.id)===String(id)})||{id:id},{archived:true,active:false}));
+        saveBanners(list);
+        renderBannersAdmin();
+        toast('Banner archivado');
+      }});
+      document.querySelectorAll('[data-unarchive-banner]').forEach(function(btn){btn.onclick=async function(){
+        var id=btn.dataset.unarchiveBanner;
+        if(!confirm('¿Desarchivar este banner?\nVolverá a estar disponible para editar o activar.'))return;
+        try{
+          if(window.TapiracuaiSupabase&&TapiracuaiSupabase.available&&TapiracuaiSupabase.unarchiveAdminBanner)await TapiracuaiSupabase.unarchiveAdminBanner(id);
+          else throw new Error('Supabase no está disponible para desarchivar banners.');
+          await refreshBanners();
+        }catch(error){toast(error&&error.message?error.message:'No se pudo desarchivar el banner');return}
+        toast('Banner desarchivado');
+      }});
       document.querySelectorAll('[data-delete-banner]').forEach(function(btn){btn.onclick=async function(){
-        var id=btn.dataset.deleteBanner;
-        if(!confirm('Eliminar este banner informativo?'))return;
-        try{if(window.TapiracuaiSupabase&&TapiracuaiSupabase.available&&TapiracuaiSupabase.deleteInfoBannerRecord)await TapiracuaiSupabase.deleteInfoBannerRecord(id);else throw new Error('Supabase no esta disponible para eliminar banners.')}
-        catch(error){toast(error&&error.message?error.message:'No se pudo eliminar el banner');return}
+        var id=btn.dataset.deleteBanner,item=banners().find(function(b){return String(b.id)===String(id)});
+        if(!confirm('¿Eliminar este banner definitivamente?\nEsta acción no se puede deshacer.'))return;
+        try{
+          if(window.TapiracuaiSupabase&&TapiracuaiSupabase.available&&TapiracuaiSupabase.deleteAdminBanner)await TapiracuaiSupabase.deleteAdminBanner(id,item&&item.imagePath);
+          else throw new Error('Supabase no está disponible para eliminar banners.');
+        }catch(error){toast(error&&error.message?error.message:'No se pudo eliminar el banner');return}
         saveBanners(banners().filter(function(b){return String(b.id)!==String(id)}));
+        if($('bannerId')&&String($('bannerId').value)===String(id))resetBannerForm();
         renderBannersAdmin();
         toast('Banner eliminado');
       }});
+    }
+    function bindNotificationActions(){
+      document.querySelectorAll('[data-edit-notification]').forEach(function(btn){btn.onclick=function(){
+        var item=notifications().find(function(n){return String(n.id)===String(btn.dataset.editNotification)});
+        if(!item)return;
+        $('notificationId').value=item.id||'';
+        $('notificationTitle').value=item.title||'';
+        $('notificationMessage').value=item.message||'';
+        if($('notificationAudience'))$('notificationAudience').value=item.audience||'all';
+        fillNotificationTargets();
+        if($('notificationUserTarget'))$('notificationUserTarget').value=item.userId||'';
+        if($('notificationDestination'))$('notificationDestination').value=item.destinationType||'none';
+        if($('notificationBusinessTarget'))$('notificationBusinessTarget').value=item.destinationValue||'';
+        $('notificationStart').value=isoToAsuncionInput(item.startAt);
+        $('notificationEnd').value=isoToAsuncionInput(item.endAt);
+        $('notificationActive').checked=item.active!==false;
+        syncNotificationFields();
+        $('notificationTitle').focus();
+      }});
+      document.querySelectorAll('[data-archive-notification]').forEach(function(btn){btn.onclick=async function(){
+        var id=btn.dataset.archiveNotification;
+        if(!confirm('Archivar esta notificación?'))return;
+        var archived=null;
+        try{if(window.TapiracuaiSupabase&&TapiracuaiSupabase.available&&TapiracuaiSupabase.archiveAdminNotification)archived=await TapiracuaiSupabase.archiveAdminNotification(id);else throw new Error('Supabase no está disponible para archivar notificaciones.')}
+        catch(error){toast(error&&error.message?error.message:'No se pudo archivar la notificación');return}
+        var list=notifications().filter(function(n){return String(n.id)!==String(id)});
+        if(archived&&archived.id)list.push(archived);
+        else list.push(Object.assign({},notifications().find(function(n){return String(n.id)===String(id)})||{id:id},{archived:true,active:false}));
+        saveNotifications(list);
+        renderNotificationsAdmin();
+        toast('Notificación archivada');
+      }});
+    }
+    async function submitNotificationForm(e){
+      e.preventDefault();
+      if(notificationState.saving)return;
+      var data=formNotificationData(true);
+      if(!data.title)return toast('Escribí el título de la notificación');
+      if(!data.message)return toast('Escribí el mensaje de la notificación');
+      if(!data.startAt||!data.endAt)return toast('Cargá fecha y hora de inicio y finalización');
+      if(new Date(data.endAt).getTime()<=new Date(data.startAt).getTime())return toast('La finalización debe ser posterior al inicio');
+      if(data.audience==='user'&&!data.userId)return toast('Seleccioná el usuario destino');
+      if(data.destinationType==='business'&&!data.destinationValue)return toast('Seleccioná el comercio destino');
+      notificationState.saving=true;$('notificationSaveButton').disabled=true;$('notificationSaveButton').textContent='Guardando...';
+      try{
+        if(!(window.TapiracuaiSupabase&&TapiracuaiSupabase.available&&TapiracuaiSupabase.saveAdminNotification))throw new Error('Supabase no está disponible para guardar notificaciones.');
+        var saved=await TapiracuaiSupabase.saveAdminNotification(data);
+        if(saved&&saved.id)saveNotifications(notifications().filter(function(n){return String(n.id)!==String(saved.id)}).concat([saved]));
+        else await refreshNotificationsAdmin();
+        resetNotificationForm();
+        renderNotificationsAdmin();
+        toast('Notificación guardada correctamente');
+      }catch(error){
+        console.error('Tapiracuai notificación admin:',error);
+        toast(error&&error.message?error.message:'No se pudo guardar la notificación');
+      }finally{
+        notificationState.saving=false;
+        if($('notificationSaveButton')){$('notificationSaveButton').disabled=false;$('notificationSaveButton').textContent='Guardar notificación'}
+      }
     }
     async function submitBannerForm(e){
       e.preventDefault();
@@ -439,20 +706,24 @@
       if(bannerState.saving)return;
       var data=formBannerData(true),file=$('bannerImage').files&&$('bannerImage').files[0];
       if(!data.title)return toast('Escribi el titulo del banner');
-      if(!data.description)return toast('Escribi la descripcion del banner');
+      if(!data.image&&!file)return toast('Selecciona una imagen para el banner');
       if(!data.startAt||!data.endAt)return toast('Carga fecha y hora de inicio y finalizacion');
       if(new Date(data.endAt).getTime()<=new Date(data.startAt).getTime())return toast('La finalizacion debe ser posterior al inicio');
+      if(data.destinationType==='business'&&!data.destinationValue)return toast('Seleccioná el comercio destino');
       bannerState.saving=true;$('bannerSaveButton').disabled=true;$('bannerSaveButton').textContent='Guardando...';
       try{
         if(file){
           if(!/^image\/(png|jpeg|webp)$/.test(file.type))throw new Error('Usa una imagen PNG, JPG o WebP.');
-          if(file.size>6*1024*1024)throw new Error('La imagen supera 6 MB.');
-          if(!(window.TapiracuaiSupabase&&TapiracuaiSupabase.available&&TapiracuaiSupabase.uploadFile))throw new Error('Supabase Storage no esta disponible.');
-          data.image=await TapiracuaiSupabase.uploadFile('banners',file,'banners/'+Date.now()+'-'+file.name.replace(/[^a-zA-Z0-9._-]+/g,'-'));
+          if(file.size>5*1024*1024)throw new Error('La imagen supera 5 MB.');
+          if(!(window.TapiracuaiSupabase&&TapiracuaiSupabase.available&&TapiracuaiSupabase.uploadBannerImage))throw new Error('Supabase Storage no está disponible.');
+          var uploaded=await TapiracuaiSupabase.uploadBannerImage(file);
+          data.image=uploaded.url;
+          data.imagePath=uploaded.path;
         }
-        if(!(window.TapiracuaiSupabase&&TapiracuaiSupabase.available&&TapiracuaiSupabase.saveInfoBannerRecord))throw new Error('Supabase no esta disponible para guardar banners.');
-        var saved=await TapiracuaiSupabase.saveInfoBannerRecord(data);
-        saveBanners(banners().filter(function(b){return String(b.id)!==String(saved.id)}).concat([saved]));
+        if(!(window.TapiracuaiSupabase&&TapiracuaiSupabase.available&&TapiracuaiSupabase.saveAdminBanner))throw new Error('Supabase no está disponible para guardar banners.');
+        var saved=await TapiracuaiSupabase.saveAdminBanner(data);
+        if(saved&&saved.id)saveBanners(banners().filter(function(b){return String(b.id)!==String(saved.id)}).concat([saved]));
+        else await refreshBanners();
         resetBannerForm();
         renderBannersAdmin();
         toast('Banner guardado correctamente');
@@ -464,17 +735,23 @@
         if($('bannerSaveButton')){$('bannerSaveButton').disabled=false;$('bannerSaveButton').textContent='Guardar banner'}
       }
     }
-    function renderAll(){renderSummary();renderBusinesses();if(BANNERS_ENABLED)renderBannersAdmin()}
+    function renderAll(){renderSummary();renderBusinesses();renderClients();renderSectionSwitch();if(BANNERS_ENABLED)renderBannersAdmin();renderNotificationsAdmin()}
+    document.querySelectorAll('[data-admin-section]').forEach(function(btn){btn.onclick=function(){setAdminSection(btn.dataset.adminSection)}});
     document.querySelectorAll('[data-close-update-request]').forEach(function(btn){btn.onclick=closeUpdateRequestModal});
+    if($('clientSearch'))$('clientSearch').oninput=renderClients;
     $('sendUpdateRequest').onclick=submitUpdateRequest;
     if(BANNERS_ENABLED&&$('bannerForm'))$('bannerForm').onsubmit=submitBannerForm;
-    if(BANNERS_ENABLED&&$('bannerPreviewButton'))$('bannerPreviewButton').onclick=function(){renderBannerPreview()};
     if(BANNERS_ENABLED&&$('bannerResetButton'))$('bannerResetButton').onclick=resetBannerForm;
     if(BANNERS_ENABLED&&$('bannerImage'))$('bannerImage').onchange=function(){var file=this.files&&this.files[0];if(!file)return;var allowed=['image/jpeg','image/png','image/webp'];if(allowed.indexOf(file.type)===-1||file.size>5*1024*1024)return;bannerState.image=URL.createObjectURL(file);renderBannerPreview()};
-    if(BANNERS_ENABLED)['bannerTitle','bannerDescription','bannerStart','bannerEnd','bannerActive'].forEach(function(id){var el=$(id);if(el)el.addEventListener('input',function(){renderBannerPreview()})});
+    if(BANNERS_ENABLED&&$('bannerDestination'))$('bannerDestination').onchange=function(){syncBannerBusinessField();renderBannerPreview()};
+    if(BANNERS_ENABLED)['bannerTitle','bannerDescription','bannerButtonText','bannerStart','bannerEnd','bannerActive','bannerPriority','bannerBusinessTarget'].forEach(function(id){var el=$(id);if(el)el.addEventListener('input',function(){renderBannerPreview()})});
+    if($('notificationForm'))$('notificationForm').onsubmit=submitNotificationForm;
+    if($('notificationResetButton'))$('notificationResetButton').onclick=resetNotificationForm;
+    if($('notificationAudience'))$('notificationAudience').onchange=syncNotificationFields;
+    if($('notificationDestination'))$('notificationDestination').onchange=syncNotificationFields;
     document.addEventListener('tapiracuai:data-updated',function(){if(authGuard())renderAll()});
     if(BANNERS_ENABLED)document.addEventListener('tapiracuai:banners-updated',function(){renderBannersAdmin()});
-    if(authGuard()){renderAll();if(BANNERS_ENABLED)refreshBanners()}
+    if(authGuard()){renderAll();loadAdminClients();refreshNotificationsAdmin();if(BANNERS_ENABLED){fillBannerBusinessOptions();syncBannerBusinessField();refreshBanners()}}
     $('logout').onclick=async function(){if(window.TapiracuaiSupabase&&TapiracuaiSupabase.available)await TapiracuaiSupabase.signOut();localStorage.removeItem('tapiracuai_auth_session');location.href='index.html'}
   </script>
 </body>

@@ -21,7 +21,7 @@ window.TAPIRACUAI_AUTH_CONFIG = {
     admin: 'administrador'
   },
   providers: {
-    google: true,
+    google: false,
     facebook: false
   },
   storage: {

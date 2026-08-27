@@ -13,10 +13,9 @@
     reviews:'tapiracuai_reviews',
     stats:'tapiracuai_stats',
     updateRequests:'tapiracuai_update_requests',
-    clientProfiles:'tapiracuai_client_profiles',
-    infoBanners:'tapiracuai_info_banners'
+    clientProfiles:'tapiracuai_client_profiles'
   };
-  var BANNERS_ENABLED=false;
+  var BANNERS_ENABLED=true;
   var connectionError='';
   if(!window.supabase)connectionError='La librería Supabase no se cargó. Revisá la conexión a https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
   else if(!cfg.supabaseUrl)connectionError='Falta supabaseUrl en auth-config.js';
@@ -94,23 +93,22 @@
     });
     return schedule;
   }
-  function scheduleRowsForBusiness(comercioId,schedule){
+  function scheduleRowsForBusiness(schedule){
     var days=['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
-    if(!comercioId||!schedule)return [];
+    if(!schedule)return [];
     var rows=[];
     days.forEach(function(day,idx){
       var item=schedule[day]||{},type=item.type||(item.closed===true?'closed':(item.type==='24_hours'?'24_hours':'regular'));
-      if(type==='regular'&&Array.isArray(item.periods)&&item.periods.length){item.periods.forEach(function(p){rows.push({comercio_id:comercioId,dia_semana:idx,abierto:true,abre:p.open||p.openTime,cierra:p.close||p.closeTime})});return}
-      rows.push({comercio_id:comercioId,dia_semana:idx,abierto:type!=='closed',abre:type==='regular'?(item.openTime||item.open||item.abre||'08:00'):null,cierra:type==='regular'?(item.closeTime||item.close||item.cierra||'18:00'):null});
+      if(type==='regular'&&Array.isArray(item.periods)&&item.periods.length){item.periods.forEach(function(p){rows.push({dia_semana:idx,abierto:true,abre:p.open||p.openTime,cierra:p.close||p.closeTime})});return}
+      rows.push({dia_semana:idx,abierto:type!=='closed',abre:type==='regular'?(item.openTime||item.open||item.abre||'08:00'):null,cierra:type==='regular'?(item.closeTime||item.close||item.cierra||'18:00'):null});
     });
     return rows;
   }
   async function saveBusinessSchedule(comercioId,schedule){
     if(!client||!comercioId||!schedule||schedule._needsReview)return;
-    var del=await client.from('comercio_horarios').delete().eq('comercio_id',comercioId);
-    if(del.error)throw del.error;
-    var rows=scheduleRowsForBusiness(comercioId,schedule);
-    if(rows.length){var ins=await client.from('comercio_horarios').insert(rows);if(ins.error)throw ins.error}
+    var rows=scheduleRowsForBusiness(schedule);
+    var res=await client.rpc('save_my_business_schedule',{p_rows:rows});
+    if(res.error)throw res.error;
   }
 
   function businessFromRow(row){
@@ -195,6 +193,29 @@
       metadata:metadata
     };
   }
+  function businessToOwnerUpdateRow(b){
+    b=b||{};
+    var cats=Array.isArray(b.categories)&&b.categories.length?b.categories:[b.rubro||b.category||'General'];
+    var row={
+      nombre:b.name||b.nombre||'Mi comercio',
+      rubro:b.rubro||cats[0]||'General',
+      categorias:cats,
+      responsable:b.owner||b.responsable||'',
+      whatsapp:b.whatsapp||'',
+      direccion:b.address||b.direccion||'',
+      latitud:n(b.lat),
+      longitud:n(b.lng),
+      horario_texto:b.hours||'',
+      metodos_pago:Array.isArray(b.paymentMethods)?b.paymentMethods:[],
+      descripcion:b.description||'',
+      logo_url:b.logo||'',
+      portada_url:b.cover||b.portada||'',
+      fotos_urls:Array.isArray(b.photos)?b.photos:[]
+    };
+    if(String(b.barrio||b.neighborhood||'').trim())row.barrio=String(b.barrio||b.neighborhood).trim();
+    if(String(b.ciudad||b.city||'').trim())row.ciudad=String(b.ciudad||b.city).trim();
+    return row;
+  }
   function productFromRow(row){
     return {id:row.id,businessId:row.comercio_id,name:row.nombre,description:row.descripcion||'',price:row.precio_gs||0,stock:row.stock==null?null:row.stock,category:row.metadata&&row.metadata.category||'',available:row.disponible!==false,active:row.activo!==false,featured:row.destacado===true,photo:row.imagen_url||'',createdAt:row.created_at,updatedAt:row.updated_at};
   }
@@ -240,7 +261,7 @@
     var originalPrice=p.originalPrice===''||p.originalPrice==null?null:normalizePriceValue(p.originalPrice);
     var offerPrice=p.offerPrice===''||p.offerPrice==null?null:normalizePriceValue(p.offerPrice);
     var metadata=Object.assign({},p.metadata||{});
-    var payload={id:id,comercio_id:p.businessId,titulo:p.title||'Promocion',descripcion:p.description||'',descuento:p.discount||'',precio_original_gs:originalPrice,precio_promocional_gs:offerPrice,fecha_inicio:p.start||null,fecha_fin:p.end||null,imagen_url:p.image||'',imagen_path:p.imagePath||'',estado:p.active===false?'paused':'active',destacada:p.featured===true,metadata:metadata};
+    var payload={id:id,comercio_id:p.businessId,titulo:p.title||'Promoción',descripcion:p.description||'',descuento:p.discount||'',precio_original_gs:originalPrice,precio_promocional_gs:offerPrice,fecha_inicio:p.start||null,fecha_fin:p.end||null,imagen_url:p.image||'',imagen_path:p.imagePath||'',estado:p.active===false?'paused':'active',destacada:p.featured===true,metadata:metadata};
     var productId=p.productId||p.productoId||p.producto_id||'';
     if(isUuid(productId))payload.producto_id=productId;
     Object.keys(payload).forEach(function(key){if(payload[key]==='')delete payload[key]});
@@ -261,30 +282,71 @@
     return {
       id:row.id,
       title:row.titulo||'',
-      description:row.descripcion||'',
+      description:row.texto||row.descripcion||'',
       image:row.imagen_url||'',
+      imagePath:row.imagen_path||'',
+      buttonText:row.boton_texto||'',
+      destinationType:row.destino_tipo||'none',
+      destinationValue:row.destino_valor||'',
       startAt:row.fecha_inicio||'',
       endAt:row.fecha_fin||'',
       active:row.activo!==false,
-      createdBy:row.creado_por||'',
+      priority:Number(row.prioridad||0),
+      archived:row.archivado===true,
+      createdBy:row.created_by||row.creado_por||'',
       createdAt:row.created_at||'',
       updatedAt:row.updated_at||''
     };
   }
-  function infoBannerToRow(b,user){
-    b=b||{};user=user||sessionUser()||{};
-    var id=isUuid(b.id)?b.id:uuid();
-    if(!id)return null;
+  function adminClientFromRow(row){
+    row=row||{};
+    var reasons=row.motivos_revision||row.review_reasons||[];
+    if(typeof reasons==='string'){
+      try{reasons=JSON.parse(reasons)}catch(e){reasons=reasons?[reasons]:[]}
+    }
+    if(!Array.isArray(reasons))reasons=[];
     return {
-      id:id,
-      titulo:String(b.title||'').trim(),
-      descripcion:String(b.description||'').trim(),
-      imagen_url:b.image||'',
-      fecha_inicio:b.startAt||null,
-      fecha_fin:b.endAt||null,
-      activo:b.active!==false,
-      creado_por:isUuid(user.id)?user.id:null,
-      metadata:{timeZone:'America/Asuncion'}
+      userId:row.usuario_id||row.user_id||row.id||'',
+      email:normalizeEmail(row.email||''),
+      name:row.nombre||row.name||'',
+      lastName:row.apellido||row.last_name||'',
+      whatsapp:row.whatsapp||row.telefono||'',
+      photo:row.foto_url||row.avatar_url||'',
+      neighborhood:row.barrio||'',
+      city:row.ciudad||'',
+      active:row.activo!==false,
+      completed:row.perfil_completo===true,
+      lastLoginAt:row.last_login_at||'',
+      createdAt:row.created_at||'',
+      updatedAt:row.updated_at||'',
+      inquiriesCount:Number(row.consultas_count||0),
+      reviewsCount:Number(row.opiniones_count||0),
+      favoritesCount:Number(row.favoritos_count||0),
+      requiresReview:row.requiere_revision===true,
+      reviewReasons:reasons
+    };
+  }
+  function bannerRpcRow(res){
+    var data=res&&res.data;
+    if(Array.isArray(data))data=data[0]||null;
+    return data?infoBannerFromRow(data):null;
+  }
+  function bannerPayload(b){
+    b=b||{};
+    var destinationType=['none','offers','new','delivery','business'].indexOf(b.destinationType)>-1?b.destinationType:'none';
+    return {
+      p_banner_id:isUuid(b.id)?b.id:null,
+      p_titulo:String(b.title||'').trim(),
+      p_texto:String(b.description||'').trim(),
+      p_imagen_url:b.image||'',
+      p_imagen_path:b.imagePath||null,
+      p_boton_texto:String(b.buttonText||'').trim()||null,
+      p_destino_tipo:destinationType,
+      p_destino_valor:destinationType==='business'&&b.destinationValue?String(b.destinationValue):null,
+      p_fecha_inicio:b.startAt||null,
+      p_fecha_fin:b.endAt||null,
+      p_activo:b.active!==false,
+      p_prioridad:Math.max(0,Math.min(100,Number(b.priority||0)))
     };
   }
   function userFromProfile(profile,roles){
@@ -310,6 +372,25 @@
       completed:clientRow.perfil_completo===true,
       updatedAt:profile.updated_at||clientRow.updated_at
     };
+  }
+  function nullableText(value){return value===undefined||value===null?null:String(value)}
+  async function ensureMyClientProfile(params){
+    params=params||{};
+    var res=await client.rpc('ensure_my_client_profile',{
+      p_foto_url:params.foto_url===undefined?null:params.foto_url,
+      p_direccion:params.direccion===undefined?null:params.direccion,
+      p_barrio:params.barrio===undefined?null:params.barrio,
+      p_ciudad:params.ciudad===undefined?null:params.ciudad
+    });
+    if(res.error)throw res.error;
+    return res.data||null;
+  }
+  function updateClientProfileCache(profile,clientRow){
+    var current=[];
+    try{current=JSON.parse(localStorage.getItem(STORAGE_KEYS.clientProfiles)||'[]')}catch(e){current=[]}
+    var next=current.filter(function(p){return p&&p.userId!==(profile&&profile.id)});
+    next.push(clientProfileFromRows(profile,clientRow));
+    writeCache(STORAGE_KEYS.clientProfiles,next);
   }
 
   async function currentAuthUser(){if(!client)return null;var res=await client.auth.getUser();return res.data&&res.data.user||null}
@@ -343,7 +424,7 @@
   async function ensureUserRole(role){
     requireClient();
     var user=await currentAuthUser();
-    if(!user)throw new Error('Inicia sesion para activar este perfil.');
+    if(!user)throw new Error('Iniciá sesión para activar este perfil.');
     if(['cliente','comercio'].indexOf(role)===-1&&!isAdminEmail(user.email))throw new Error('Perfil no permitido.');
     try{
       var res=await client.from('usuario_roles').upsert({usuario_id:user.id,role:role},{onConflict:'usuario_id,role'});
@@ -354,7 +435,7 @@
   async function ensureCommerceClientProfile(seed){
     requireClient();
     var user=await currentAuthUser();
-    if(!user)throw new Error('Inicia sesion para crear el perfil cliente.');
+    if(!user)throw new Error('Iniciá sesión para crear el perfil cliente.');
     seed=seed||{};
     await ensureUserRole('cliente');
     var profile=await fetchUserProfile(user);
@@ -372,18 +453,15 @@
       if(userUpdate.error)throw userUpdate.error;
       profile=userUpdate.data;
     }
-    var complete=!!(String(profile.nombre||'').trim()&&String(profile.whatsapp||'').trim());
-    var clientPayload={
-      usuario_id:user.id,
-      foto_url:clientRow.foto_url||profile.avatar_url||'',
-      direccion:clientRow.direccion||profile.direccion||'',
-      barrio:clientRow.barrio||profile.barrio||'',
-      ciudad:clientRow.ciudad||profile.ciudad||'Santaní',
-      perfil_completo:clientRow.perfil_completo===true||complete
-    };
-    var up=await client.from('clientes').upsert(clientPayload,{onConflict:'usuario_id'}).select().single();
-    if(up.error)throw up.error;
+    var clientRowUpdated=await ensureMyClientProfile({
+      foto_url:nullableText(clientRow.foto_url||profile.avatar_url||null),
+      direccion:nullableText(clientRow.direccion||profile.direccion||null),
+      barrio:nullableText(clientRow.barrio||profile.barrio||null),
+      ciudad:nullableText(clientRow.ciudad||profile.ciudad||null)
+    });
+    if(clientRowUpdated)clientRow=clientRowUpdated;
     var roles=await fetchUserRoles(user,profile);
+    updateClientProfileCache(profile,clientRow);
     return userFromProfile(profile,roles);
   }
   async function createBusinessForUser(authUser,businessData){
@@ -393,27 +471,27 @@
     if(existing.data)return businessFromRow(existing.data);
     businessData=businessData||{};
     var name=businessData.businessName||businessData.name||'Mi comercio';
-    var row=businessToRow({
-      id:authUser.id,
-      ownerUserId:authUser.id,
-      email:authUser.email,
-      name:name,
-      rubro:businessData.rubro||businessData.category||'General',
-      categories:[businessData.rubro||businessData.category||'General'],
-      owner:businessData.responsable||businessData.owner||'',
-      whatsapp:businessData.whatsapp||'',
-      address:businessData.direccion||businessData.address||'',
-      active:true
-    },{id:authUser.id,email:authUser.email});
-    var res=await client.from('comercios').upsert(row,{onConflict:'id'}).select().single();
+    var category=businessData.rubro||businessData.category||'General';
+    var res=await client.rpc('create_my_comercio',{
+      p_nombre:name,
+      p_rubro:category,
+      p_categorias:[category],
+      p_responsable:businessData.responsable||businessData.owner||'',
+      p_whatsapp:businessData.whatsapp||'',
+      p_email_contacto:normalizeEmail(authUser.email),
+      p_direccion:businessData.direccion||businessData.address||'',
+      p_barrio:businessData.barrio||businessData.neighborhood||null,
+      p_ciudad:businessData.ciudad||businessData.city||null
+    });
     if(res.error)throw res.error;
-    await client.from('comercio_configuraciones').upsert({comercio_id:res.data.id},{onConflict:'comercio_id'});
+    var configRes=await client.rpc('ensure_my_commerce_config');
+    if(configRes.error)throw configRes.error;
     return businessFromRow(res.data);
   }
   async function activateCommerceProfile(businessData){
     requireClient();
     var user=await currentAuthUser();
-    if(!user)throw new Error('Inicia sesion para activar el comercio.');
+    if(!user)throw new Error('Iniciá sesión para activar el comercio.');
     await ensureUserRole('comercio');
     return createBusinessForUser(user,businessData||{});
   }
@@ -498,10 +576,8 @@
     var r=await client.from('opiniones').select('*').order('created_at',{ascending:false});
     if(!r.error)writeCache(STORAGE_KEYS.reviews,(r.data||[]).map(reviewFromRow));
     try{
-      if(!BANNERS_ENABLED)throw null;
-      var bi=await client.from('banners_informativos').select('*').order('created_at',{ascending:false});
-      if(!bi.error)writeCache(STORAGE_KEYS.infoBanners,(bi.data||[]).map(infoBannerFromRow));
-    }catch(error){if(error)console.warn('Tapiracuai Supabase banners:',error&&error.message?error.message:error)}
+      if(BANNERS_ENABLED)await fetchActiveBanners();
+    }catch(error){console.warn('Tapiracuai Supabase banners:',error&&error.message?error.message:error)}
   }
   async function hydratePrivate(){
     if(!client)return;
@@ -535,29 +611,13 @@
   }
 
   async function pushBusinesses(list,previous){
-    var rows=(list||[]).map(function(b){return businessToRow(b)}).filter(Boolean);
-    if(rows.length){
-      var res=await client.from('comercios').upsert(rows,{onConflict:'id'});
-      if(res.error)console.warn('Tapiracuai Supabase comercios:',res.error.message);
-      else {
-        for(var i=0;i<(list||[]).length;i++){
-          if((list||[])[i]&&list[i].schedule&&list[i].schedule._needsReview!==true){
-            try{await saveBusinessSchedule(rows[i]&&rows[i].id,list[i].schedule)}catch(error){console.warn('Tapiracuai Supabase horarios:',error.message)}
-          }
-        }
-      }
-    }
-    await deleteRemoved('comercios',list,previous);
+    return;
   }
   async function pushProducts(list,previous){
-    var rows=(list||[]).map(productToRow).filter(Boolean);
-    if(rows.length){var up=await client.from('productos').upsert(rows,{onConflict:'id'});if(up.error)console.warn('Tapiracuai Supabase productos:',up.error.message)}
-    await deleteRemoved('productos',list,previous);
+    return;
   }
   async function pushPromotions(list,previous){
-    var rows=(list||[]).map(promoToRow).filter(Boolean);
-    if(rows.length){var up=await client.from('promociones').upsert(rows,{onConflict:'id'});if(up.error)console.warn('Tapiracuai Supabase promociones:',up.error.message)}
-    await deleteRemoved('promociones',list,previous);
+    return;
   }
   async function deleteRemoved(table,next,previous){
     var nextIds={};(next||[]).forEach(function(x){if(isUuid(x&&x.id))nextIds[x.id]=true});
@@ -565,30 +625,64 @@
     if(removed.length){var res=await client.from(table).delete().in('id',removed);if(res.error)console.warn('Tapiracuai Supabase delete '+table+':',res.error.message)}
   }
   async function pushReviews(list,previous){
-    var rows=(list||[]).filter(function(r){return isUuid(r.businessId)}).map(function(r){
-      return {id:isUuid(r.id)?r.id:uuid(),comercio_id:r.businessId,usuario_id:isUuid(r.userId)?r.userId:null,nombre_publico:r.clientName||'Cliente',calificacion:Number(r.stars||5),comentario:r.comment||'',aprobada:true,activa:r.active!==false};
-    });
-    if(rows.length){var res=await client.from('opiniones').upsert(rows,{onConflict:'id'});if(res.error)console.warn('Tapiracuai Supabase opiniones:',res.error.message)}
-    await deleteRemoved('opiniones',list,previous);
+    var user=await currentAuthUser();
+    if(!user)return;
+    function ownReview(r){return r&&r.userId===user.id&&isUuid(r.businessId)}
+    function normalizeStars(r){
+      var stars=Math.round(Number(r.stars||r.rating||5));
+      if(!Number.isFinite(stars))stars=5;
+      return Math.max(1,Math.min(5,stars));
+    }
+    function commentOf(r){return String(r.comment||r.message||'').trim()}
+    function sameReview(a,b){return a&&b&&String(a.businessId)===String(b.businessId)&&String(a.userId)===String(b.userId)}
+    function changedReview(a,b){return !a||normalizeStars(a)!==normalizeStars(b)||commentOf(a)!==commentOf(b)}
+    var nextRows=(list||[]).filter(ownReview),prevRows=(previous||[]).filter(ownReview),saved=[];
+    for(var i=0;i<nextRows.length;i++){
+      var review=nextRows[i],old=prevRows.find(function(item){return sameReview(item,review)});
+      if(!changedReview(old,review))continue;
+      var res=await client.rpc('save_my_review',{
+        p_comercio_id:review.businessId,
+        p_calificacion:normalizeStars(review),
+        p_comentario:commentOf(review)
+      });
+      if(res.error){console.warn('Tapiracuai Supabase opiniones:',res.error.message);continue}
+      var savedRow=Array.isArray(res.data)?res.data[0]:res.data;
+      if(savedRow&&savedRow.id)saved.push(reviewFromRow(savedRow));
+    }
+    for(var j=0;j<prevRows.length;j++){
+      if(nextRows.some(function(item){return sameReview(item,prevRows[j])}))continue;
+      if(!isUuid(prevRows[j].id))continue;
+      var archived=await client.rpc('archive_my_review',{p_opinion_id:prevRows[j].id});
+      if(archived.error)console.warn('Tapiracuai Supabase opiniones:',archived.error.message);
+    }
+    if(saved.length){
+      var cache=readJson(STORAGE_KEYS.reviews,[]);
+      saved.forEach(function(item){
+        cache=cache.filter(function(existing){return !(sameReview(existing,item)||String(existing.id)===String(item.id))});
+        cache.push(item);
+      });
+      writeCache(STORAGE_KEYS.reviews,cache);
+    }
   }
   async function pushFavorites(list,previous){
-    var rows=(list||[]).filter(function(f){return isUuid(f.userId)&&isUuid(f.id)});
-    for(var i=0;i<rows.length;i++){
-      var f=rows[i], query=client.from('favoritos').select('id').eq('usuario_id',f.userId).limit(1);
-      query=f.type==='comercio'?query.eq('comercio_id',f.id).is('producto_id',null):query.eq('producto_id',f.id).is('comercio_id',null);
-      var found=await query;
-      if(found.error){console.warn('Tapiracuai Supabase favoritos:',found.error.message);continue}
-      if(found.data&&found.data.length)continue;
-      var res=await client.from('favoritos').insert({usuario_id:f.userId,comercio_id:f.type==='comercio'?f.id:null,producto_id:f.type==='producto'?f.id:null});
+    var user=await currentAuthUser();
+    if(!user)return;
+    function validFavorite(f){return f&&f.userId===user.id&&isUuid(f.id)&&(f.type==='comercio'||f.type==='producto')}
+    function sameFavorite(a,b){return a&&b&&a.type===b.type&&String(a.id)===String(b.id)}
+    async function setFavorite(f,value){
+      var res=await client.rpc('set_my_favorite',{
+        p_comercio_id:f.type==='comercio'?f.id:null,
+        p_producto_id:f.type==='producto'?f.id:null,
+        p_favorito:value===true
+      });
       if(res.error)console.warn('Tapiracuai Supabase favoritos:',res.error.message);
     }
-    var prev=(previous||[]).filter(function(f){return isUuid(f.userId)&&isUuid(f.id)});
-    for(var j=0;j<prev.length;j++){
-      var old=prev[j], still=(list||[]).some(function(f){return f.userId===old.userId&&f.type===old.type&&String(f.id)===String(old.id)});
-      if(still)continue;
-      var del=client.from('favoritos').delete().eq('usuario_id',old.userId);
-      del=old.type==='comercio'?del.eq('comercio_id',old.id):del.eq('producto_id',old.id);
-      var dres=await del;if(dres.error)console.warn('Tapiracuai Supabase favoritos delete:',dres.error.message);
+    var nextRows=(list||[]).filter(validFavorite),prevRows=(previous||[]).filter(validFavorite);
+    for(var i=0;i<nextRows.length;i++){
+      if(!prevRows.some(function(old){return sameFavorite(old,nextRows[i])}))await setFavorite(nextRows[i],true);
+    }
+    for(var j=0;j<prevRows.length;j++){
+      if(!nextRows.some(function(f){return sameFavorite(f,prevRows[j])}))await setFavorite(prevRows[j],false);
     }
   }
   async function pushStats(){
@@ -614,10 +708,48 @@
   }
   async function recordInquiry(data){
     if(!client||!data||!isUuid(data.businessId))return;
-    var user=await currentAuthUser();
-    var row={comercio_id:data.businessId,producto_id:isUuid(data.productId)?data.productId:null,usuario_id:user&&isUuid(user.id)?user.id:null,nombre_cliente:data.clientName||'',whatsapp_cliente:data.whatsapp||'',mensaje:data.message||'Consulta por WhatsApp desde Tapiracuai',origen:'whatsapp',estado:'new'};
-    var res=await client.from('consultas').insert(row);
+    var res=await client.rpc('create_my_inquiry',{
+      p_comercio_id:data.businessId,
+      p_producto_id:isUuid(data.productId)?data.productId:null,
+      p_nombre_cliente:data.clientName||'',
+      p_whatsapp_cliente:data.whatsapp||'',
+      p_mensaje:data.message||'Consulta por WhatsApp desde Tapiracuai'
+    });
     if(res.error)console.warn('Tapiracuai Supabase consulta:',res.error.message);
+  }
+  function inquiryFromRow(row){
+    row=row||{};
+    return {
+      id:row.id||'',
+      businessId:row.comercio_id||'',
+      productId:row.producto_id||'',
+      userId:row.usuario_id||'',
+      clientName:row.nombre_cliente||row.client_name||'',
+      clientWhatsapp:row.whatsapp_cliente||row.client_whatsapp||'',
+      productName:row.producto_nombre||row.nombre_producto||row.product_name||row.producto||'',
+      message:row.mensaje||'',
+      origin:row.origen||'',
+      status:row.estado||'new',
+      createdAt:row.created_at||'',
+      updatedAt:row.updated_at||''
+    };
+  }
+  async function fetchMyInquiries(){
+    requireClient();
+    var res=await client.rpc('get_my_inquiries');
+    if(res.error)throw res.error;
+    return (res.data||[]).map(inquiryFromRow);
+  }
+  async function setInquiryStatus(id,status){
+    requireClient();
+    if(!isUuid(id))throw new Error('Consulta inválida.');
+    if(['new','opened','answered','archived'].indexOf(status)===-1)throw new Error('Estado de consulta inválido.');
+    var res=await client.rpc('set_inquiry_status',{
+      p_consulta_id:id,
+      p_estado:status
+    });
+    if(res.error)throw res.error;
+    return res.data&&typeof res.data==='object'?inquiryFromRow(res.data):true;
   }
   function updateRequestFromRow(row){
     var meta=row&&row.metadata||{};
@@ -671,16 +803,29 @@
     var current=await currentAuthUser();
     if(!current)return;
     await ensureUserRole('cliente');
+    var changed=false;
     for(var i=0;i<(list||[]).length;i++){
       var p=list[i]||{};
       if(!isUuid(p.userId)||p.userId!==current.id)continue;
       var fullName=[p.name,p.lastName].filter(Boolean).join(' ').trim();
       var userRes=await client.from('usuarios').update({nombre:fullName||p.name||'',whatsapp:p.phone||'',avatar_url:p.photo||'',direccion:p.address||'',barrio:p.neighborhood||'',ciudad:p.city||'Santaní'}).eq('id',p.userId);
       if(userRes.error)console.warn('Tapiracuai Supabase usuario perfil:',userRes.error.message);
-      var clientRes=await client.from('clientes').upsert({usuario_id:p.userId,foto_url:p.photo||'',direccion:p.address||'',barrio:p.neighborhood||'',ciudad:p.city||'Santaní',perfil_completo:p.completed===true},{onConflict:'usuario_id'});
-      if(clientRes.error)console.warn('Tapiracuai Supabase cliente perfil:',clientRes.error.message);
-      if(clientRes.error)throw clientRes.error;
+      var clientRow=await ensureMyClientProfile({
+        foto_url:nullableText(p.photo||null),
+        direccion:nullableText(p.address||null),
+        barrio:nullableText(p.neighborhood||null),
+        ciudad:nullableText(p.city||null)
+      });
+      if(clientRow){
+        p.photo=clientRow.foto_url||p.photo||'';
+        p.address=clientRow.direccion||p.address||'';
+        p.neighborhood=clientRow.barrio||p.neighborhood||'';
+        p.city=clientRow.ciudad||p.city||'Santaní';
+        p.completed=clientRow.perfil_completo===true;
+        changed=true;
+      }
     }
+    if(changed)writeCache(STORAGE_KEYS.clientProfiles,(list||[]));
   }
   function schedulePush(key,nextValue,previousValue){
     if(!client||syncPaused||syncingKeys[key])return;
@@ -690,11 +835,8 @@
         var next=JSON.parse(nextValue||'[]');
         var prev=JSON.parse(previousValue||'[]');
         if(key===STORAGE_KEYS.businesses)await pushBusinesses(next,prev);
-        if(key===STORAGE_KEYS.products)await pushProducts(next,prev);
-        if(key===STORAGE_KEYS.promotions)await pushPromotions(next,prev);
         if(key===STORAGE_KEYS.reviews)await pushReviews(next,prev);
         if(key===STORAGE_KEYS.favorites)await pushFavorites(next,prev);
-        if(key===STORAGE_KEYS.clientProfiles)await pushClientProfiles(next);
       }catch(e){console.warn('Tapiracuai Supabase sync:',e.message)}
       finally{syncingKeys[key]=false}
     },120);
@@ -702,7 +844,7 @@
   Storage.prototype.setItem=function(key,value){
     var previous=localStorage.getItem(key);
     rawSetItem.call(this,key,value);
-    if([STORAGE_KEYS.businesses,STORAGE_KEYS.products,STORAGE_KEYS.promotions,STORAGE_KEYS.favorites,STORAGE_KEYS.reviews,STORAGE_KEYS.clientProfiles].indexOf(key)>-1){
+    if([STORAGE_KEYS.businesses,STORAGE_KEYS.favorites,STORAGE_KEYS.reviews].indexOf(key)>-1){
       schedulePush(key,value,previous);
     }
   };
@@ -711,7 +853,7 @@
     if(!client||!file)return '';
     validateImageFile(file);
     var user=await currentAuthUser();
-    if(!user)throw new Error('Inicia sesion para subir imagenes.');
+    if(!user)throw new Error('Iniciá sesión para subir imágenes.');
     var safeName=String(file.name||'imagen').replace(/[^a-zA-Z0-9._-]+/g,'-');
     var finalPath=path||user.id+'/'+Date.now()+'-'+safeName;
     var res=await client.storage.from(bucket).upload(finalPath,file,{cacheControl:'3600',upsert:true});
@@ -722,16 +864,23 @@
   async function saveBusinessRecord(b){
     requireClient();
     var user=await currentAuthUser();
-    if(!user)throw new Error('Inicia sesion para guardar el comercio.');
+    if(!user)throw new Error('Iniciá sesión para guardar el comercio.');
     await ensureUserRole('comercio');
-    b=Object.assign({},b||{},{id:user.id,ownerUserId:user.id,email:user.email});
-    var row=businessToRow(b,{id:user.id,email:user.email});
-    if(!row)throw new Error('No se pudo preparar el comercio para guardar en Supabase.');
-    var existing=await client.from('comercios').select('metadata').eq('id',row.id).maybeSingle();
-    if(!existing.error&&existing.data)row.metadata=Object.assign({},existing.data.metadata||{},row.metadata||{});
-    var res=await client.from('comercios').upsert(row,{onConflict:'id'}).select().single();
+    b=Object.assign({},b||{},{ownerUserId:user.id,email:user.email});
+    var own=await client.from('comercios').select('id').eq('owner_user_id',user.id).order('created_at',{ascending:false}).limit(1).maybeSingle();
+    if(own.error)throw own.error;
+    if(!own.data){
+      own={data:await createBusinessForUser(user,{businessName:b.name||b.nombre||'Mi comercio',rubro:b.rubro||(b.categories&&b.categories[0])||'General',responsable:b.owner||b.responsable||'',whatsapp:b.whatsapp||'',direccion:b.address||b.direccion||'',barrio:b.barrio||b.neighborhood||null,ciudad:b.ciudad||b.city||null})};
+    }
+    var row=businessToOwnerUpdateRow(b);
+    var res=await client.from('comercios').update(row).eq('id',own.data.id).eq('owner_user_id',user.id).select().single();
     if(res.error)throw res.error;
     var item=businessFromRow(res.data);
+    if(hasOwn(b,'delivery')){
+      var deliveryRes=await client.rpc('set_my_comercio_delivery',{p_comercio_id:item.id,p_delivery:b.delivery===true});
+      if(deliveryRes.error)throw deliveryRes.error;
+      item=businessFromRow(deliveryRes.data);
+    }
     if(b.schedule&&b.schedule._needsReview!==true){await saveBusinessSchedule(item.id,b.schedule);item.schedule=b.schedule}
     await ensureCommerceClientProfile({fullName:b.owner||b.responsable||'',whatsapp:b.whatsapp||''});
     var cached=readJson(STORAGE_KEYS.businesses,[]).filter(function(x){return String(x.id)!==String(item.id)&&String(x.ownerUserId)!==String(item.ownerUserId)});
@@ -739,18 +888,21 @@
     writeCache(STORAGE_KEYS.businesses,cached);
     return item;
   }
-  async function saveAdminBusinessRecord(b){
+  async function saveAdminBusinessRecord(b,options){
     requireClient();
     var user=await currentAuthUser();
     if(!user||!isAdminEmail(user.email))throw new Error('Solo el administrador puede modificar comercios.');
-    var row=businessToRow(b,{id:b&&b.ownerUserId,email:b&&b.email});
-    if(!row)throw new Error('No se pudo preparar el comercio para guardar en Supabase.');
-    var existing=await client.from('comercios').select('metadata').eq('id',row.id).maybeSingle();
-    if(!existing.error&&existing.data)row.metadata=Object.assign({},existing.data.metadata||{},row.metadata||{});
-    var res=await client.from('comercios').upsert(row,{onConflict:'id'}).select().single();
+    options=options||{};
+    var action=options.action||'';
+    if(['verify','unverify','feature','unfeature','suspend','reactivate'].indexOf(action)===-1)throw new Error('Accion administrativa no permitida.');
+    var res=await client.rpc('admin_update_comercio',{
+      p_comercio_id:b&&b.id,
+      p_action:action,
+      p_reason:options.message||b&&b.suspensionReason||null,
+      p_admin_notice:b&&b.adminNotice?b.adminNotice:null
+    });
     if(res.error)throw res.error;
     var item=businessFromRow(res.data);
-    if(b&&b.schedule&&b.schedule._needsReview!==true){await saveBusinessSchedule(item.id,b.schedule);item.schedule=b.schedule}
     var cached=readJson(STORAGE_KEYS.businesses,[]).filter(function(x){return String(x.id)!==String(item.id)});
     cached.unshift(item);
     writeCache(STORAGE_KEYS.businesses,cached);
@@ -760,18 +912,24 @@
   async function saveProductRecord(p){
     requireClient();
     var user=await currentAuthUser();
-    if(!user)throw new Error('Inicia sesi?n para guardar productos.');
-    var own=await fetchOwnBusiness();
-    if(!own){
-      throw new Error('No se encontr? un comercio vinculado a este usuario.');
-    }
-    if(!isUuid(own.id)){
-      throw new Error('El comercio no tiene un identificador válido.');
-    }
-    p=Object.assign({},p||{},{businessId:own.id});
-    var payload=productToRow(p);
-    if(!payload)throw new Error('El comercio no tiene un identificador válido.');
-    var res=await client.from('productos').upsert(payload,{onConflict:'id'}).select().single();
+    if(!user)throw new Error('Iniciá sesión para guardar productos.');
+    p=p||{};
+    var categoryId=p.categoryId||p.categoriaId||p.categoria_id||null;
+    var stock=p.stock===''||p.stock==null?null:Number(p.stock);
+    if(!Number.isFinite(stock))stock=null;
+    var res=await client.rpc('save_my_product',{
+      p_nombre:p.name||'Producto',
+      p_precio_gs:normalizePriceValue(p.price),
+      p_producto_id:isUuid(p.id)?p.id:null,
+      p_categoria_id:isUuid(categoryId)?categoryId:null,
+      p_descripcion:p.description||'',
+      p_stock:stock,
+      p_disponible:p.available!==false,
+      p_activo:p.active!==false,
+      p_imagen_url:p.photo||'',
+      p_imagen_path:p.imagePath||null,
+      p_categoria_nombre:String(p.category||'').trim()||null
+    });
     if(res.error){
       var message=[
         'error.code: '+(res.error.code||''),
@@ -781,9 +939,8 @@
       ].join(' | ');
       var err=new Error(message);
       err.supabaseError=res.error;
-      err.payload=payload;
+      err.payload=null;
       err.authUserId=user.id;
-      err.commerceId=own.id;
       throw err;
     }
     var item=productFromRow(res.data);
@@ -794,8 +951,8 @@
   }
   async function deleteProductRecord(id){
     requireClient();
-    if(!isUuid(id))throw new Error('Producto invalido para eliminar.');
-    var res=await client.from('productos').delete().eq('id',id);
+    if(!isUuid(id))throw new Error('Producto inválido para archivar.');
+    var res=await client.rpc('archive_my_product',{p_producto_id:id});
     if(res.error)throw res.error;
     writeCache(STORAGE_KEYS.products,readJson(STORAGE_KEYS.products,[]).filter(function(x){return String(x.id)!==String(id)}));
     return true;
@@ -803,14 +960,31 @@
   async function savePromotionRecord(p){
     requireClient();
     var user=await currentAuthUser();
-    if(!user)throw new Error('Inicia sesion para guardar promociones.');
+    if(!user)throw new Error('Iniciá sesión para guardar promociones.');
     var own=await fetchOwnBusiness();
     if(!own)throw new Error('No se encontró un comercio vinculado a este usuario.');
     if(!isUuid(own.id))throw new Error('El comercio no tiene un identificador válido.');
-    p=Object.assign({},p||{},{businessId:own.id});
-    var payload=promoToRow(p);
-    if(!payload)throw new Error('El comercio no tiene un identificador válido.');
-    var res=await client.from('promociones').upsert(payload,{onConflict:'id'}).select().single();
+    p=p||{};
+    var productId=p.productId||p.productoId||p.producto_id||null;
+    var originalPrice=p.originalPrice===''||p.originalPrice==null?null:normalizePriceValue(p.originalPrice);
+    var offerPrice=p.offerPrice===''||p.offerPrice==null?null:normalizePriceValue(p.offerPrice);
+    if(originalPrice!=null&&offerPrice!=null&&offerPrice>=originalPrice)throw new Error('El precio oferta debe ser menor al precio anterior.');
+    if(p.start&&p.end&&String(p.end)<String(p.start))throw new Error('La fecha de fin no puede ser anterior a la fecha de inicio.');
+    var state=p.active===false?'paused':'active';
+    var res=await client.rpc('save_my_promotion',{
+      p_promocion_id:isUuid(p.id)?p.id:null,
+      p_producto_id:isUuid(productId)?productId:null,
+      p_titulo:p.title||'Promoción',
+      p_descripcion:p.description||'',
+      p_descuento:p.discount||'',
+      p_precio_original_gs:originalPrice,
+      p_precio_promocional_gs:offerPrice,
+      p_fecha_inicio:p.start||null,
+      p_fecha_fin:p.end||null,
+      p_imagen_url:p.image||'',
+      p_imagen_path:p.imagePath||null,
+      p_estado:state
+    });
     if(res.error)throw res.error;
     var item=promoFromRow(res.data);
     var cached=readJson(STORAGE_KEYS.promotions,[]).filter(function(x){return String(x.id)!==String(item.id)});
@@ -820,47 +994,289 @@
   }
   async function deletePromotionRecord(id){
     requireClient();
-    if(!isUuid(id))throw new Error('Promocion invalida para eliminar.');
-    var res=await client.from('promociones').delete().eq('id',id);
+    if(!isUuid(id))throw new Error('Promoción inválida para archivar.');
+    var res=await client.rpc('archive_my_promotion',{p_promocion_id:id});
     if(res.error)throw res.error;
     writeCache(STORAGE_KEYS.promotions,readJson(STORAGE_KEYS.promotions,[]).filter(function(x){return String(x.id)!==String(id)}));
     return true;
   }
-  async function fetchInfoBanners(){
-    if(!BANNERS_ENABLED)return [];
-    requireClient();
-    var res=await client.from('banners_informativos').select('*').order('created_at',{ascending:false});
-    if(res.error)throw res.error;
-    var items=(res.data||[]).map(infoBannerFromRow);
-    writeCache(STORAGE_KEYS.infoBanners,items);
-    dispatch('tapiracuai:banners-updated',{source:'supabase'});
-    return items;
+  function jobFromRow(row){
+    row=row||{};
+    var status=row.estado||row.status||'active';
+    return {
+      id:row.id||row.job_id||'',
+      businessId:row.comercio_id||row.business_id||row.businessId||'',
+      businessName:row.comercio_nombre||row.business_name||row.nombre_comercio||row.businessName||'',
+      position:row.puesto||row.position||row.titulo||row.title||'Vacante',
+      description:row.descripcion||row.description||'',
+      requirements:row.requisitos||row.requirements||'',
+      image:row.imagen_url||row.image_url||row.image||'',
+      imagePath:row.imagen_path||row.image_path||'',
+      modality:row.modalidad||row.modality||'Presencial',
+      employmentType:row.tipo_empleo||row.employment_type||row.tipo||row.type||'Tiempo completo',
+      scheduleText:row.horario||row.horario_texto||row.schedule_text||'',
+      address:row.direccion||row.address||'',
+      neighborhood:row.barrio||row.neighborhood||'',
+      startAt:row.fecha_inicio||row.start_at||row.startAt||'',
+      endAt:row.fecha_fin||row.end_at||row.endAt||'',
+      status:status,
+      active:status==='active'||row.activo===true,
+      archived:status==='archived'||row.archivado===true,
+      createdAt:row.created_at||row.createdAt||'',
+      updatedAt:row.updated_at||row.updatedAt||''
+    };
   }
-  async function saveInfoBannerRecord(b){
-    if(!BANNERS_ENABLED)throw new Error('Banners informativos desactivados temporalmente.');
+  function jobRpcPayload(data){
+    data=data||{};
+    var status=data.status||data.estado||(data.active===false?'paused':'active');
+    if(['active','paused'].indexOf(status)===-1)status='active';
+    function jobModalityValue(value){
+      var key=String(value||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[-\s]+/g,'_');
+      return {presencial:'presencial',remoto:'remoto',hibrido:'hibrido',hybrid:'hibrido'}[key]||'presencial';
+    }
+    function jobTypeValue(value){
+      var key=String(value||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[-\s]+/g,'_');
+      return {tiempo_completo:'tiempo_completo',full_time:'tiempo_completo',medio_tiempo:'medio_tiempo',part_time:'medio_tiempo',temporal:'temporal',por_horas:'por_horas',otro:'otro'}[key]||'tiempo_completo';
+    }
+    return {
+      p_job_id:isUuid(data.id)?data.id:null,
+      p_puesto:String(data.position||data.puesto||'').trim(),
+      p_descripcion:String(data.description||data.descripcion||'').trim(),
+      p_requisitos:String(data.requirements||data.requisitos||'').trim(),
+      p_imagen_url:data.image||data.imagen_url||'',
+      p_imagen_path:data.imagePath||data.imagen_path||null,
+      p_modalidad:jobModalityValue(data.modality||data.modalidad),
+      p_tipo_empleo:jobTypeValue(data.employmentType||data.tipo_empleo||data.type),
+      p_horario_texto:data.scheduleText||data.horario||'',
+      p_direccion:data.address||data.direccion||'',
+      p_barrio:data.neighborhood||data.barrio||'',
+      p_fecha_inicio:data.startAt||data.fecha_inicio||null,
+      p_fecha_fin:data.endAt||data.fecha_fin||null,
+      p_estado:status
+    };
+  }
+  async function fetchMyJobs(){
+    requireClient();
+    var res=await client.rpc('get_my_jobs');
+    if(res.error)throw res.error;
+    return (Array.isArray(res.data)?res.data:[]).map(jobFromRow);
+  }
+  async function saveMyJob(data){
     requireClient();
     var user=await currentAuthUser();
-    if(!user||!isAdminEmail(user.email))throw new Error('Solo el administrador puede guardar banners.');
-    var row=infoBannerToRow(b,user);
-    if(!row)throw new Error('No se pudo preparar el banner.');
-    var res=await client.from('banners_informativos').upsert(row,{onConflict:'id'}).select().single();
+    if(!user)throw new Error('Iniciá sesión para guardar empleos.');
+    var payload=jobRpcPayload(data);
+    if(!payload.p_puesto)throw new Error('Completá el puesto de la vacante.');
+    var res=await client.rpc('save_my_job',payload);
     if(res.error)throw res.error;
-    var item=infoBannerFromRow(res.data);
-    writeCache(STORAGE_KEYS.infoBanners,mergeById(readJson(STORAGE_KEYS.infoBanners,[]).filter(function(x){return String(x.id)!==String(item.id)}),[item]).sort(function(a,b){return new Date(b.createdAt||0)-new Date(a.createdAt||0)}));
-    dispatch('tapiracuai:banners-updated',{source:'admin'});
+    return jobFromRow(Array.isArray(res.data)?res.data[0]:res.data);
+  }
+  async function setMyJobStatus(id,status){
+    requireClient();
+    if(!isUuid(id))throw new Error('Vacante inválida.');
+    if(['active','paused','closed'].indexOf(status)===-1)throw new Error('Estado de vacante inválido.');
+    var res=await client.rpc('set_my_job_status',{p_job_id:id,p_estado:status});
+    if(res.error)throw res.error;
+    return jobFromRow(Array.isArray(res.data)?res.data[0]:res.data);
+  }
+  async function archiveMyJob(id){
+    requireClient();
+    if(!isUuid(id))throw new Error('Vacante inválida.');
+    var res=await client.rpc('archive_my_job',{p_job_id:id});
+    if(res.error)throw res.error;
+    return jobFromRow(Array.isArray(res.data)?res.data[0]:res.data);
+  }
+  async function fetchActiveJobs(){
+    requireClient();
+    var res=await client.rpc('get_active_jobs');
+    if(res.error)throw res.error;
+    return (Array.isArray(res.data)?res.data:[]).map(jobFromRow);
+  }
+  async function fetchBusinessActiveJobs(comercioId){
+    requireClient();
+    if(!isUuid(comercioId))return [];
+    var res=await client.rpc('get_business_active_jobs',{p_comercio_id:comercioId});
+    if(res.error)throw res.error;
+    return (Array.isArray(res.data)?res.data:[]).map(jobFromRow);
+  }
+  async function uploadJobImage(file,jobId){
+    if(!file)return {url:'',path:''};
+    requireClient();
+    validateImageFile(file);
+    var user=await currentAuthUser();
+    if(!user)throw new Error('Iniciá sesión para subir imágenes.');
+    var safeName=String(file.name||'vacante').replace(/[^a-zA-Z0-9._-]+/g,'-');
+    var folder=isUuid(jobId)?jobId:(uuid()||String(Date.now()));
+    var finalPath=user.id+'/'+folder+'/'+Date.now()+'-'+safeName;
+    var res=await client.storage.from('job-images').upload(finalPath,file,{cacheControl:'3600',upsert:true});
+    if(res.error)throw res.error;
+    return {url:publicUrl('job-images',res.data.path),path:res.data.path};
+  }
+  async function fetchActiveBanner(){
+    if(!BANNERS_ENABLED)return null;
+    requireClient();
+    var res=await client.rpc('get_active_banner');
+    if(res.error)throw res.error;
+    var item=bannerRpcRow(res);
+    dispatch('tapiracuai:banners-updated',{source:'active-banner',banner:item});
     return item;
   }
-  async function deleteInfoBannerRecord(id){
-    if(!BANNERS_ENABLED)throw new Error('Banners informativos desactivados temporalmente.');
+  async function fetchActiveBanners(){
+    if(!BANNERS_ENABLED)return [];
     requireClient();
-    var user=await currentAuthUser();
-    if(!user||!isAdminEmail(user.email))throw new Error('Solo el administrador puede eliminar banners.');
-    if(!isUuid(id))throw new Error('Banner invalido para eliminar.');
-    var res=await client.from('banners_informativos').delete().eq('id',id);
+    var res=await client.rpc('get_active_banners');
     if(res.error)throw res.error;
-    writeCache(STORAGE_KEYS.infoBanners,readJson(STORAGE_KEYS.infoBanners,[]).filter(function(x){return String(x.id)!==String(id)}));
-    dispatch('tapiracuai:banners-updated',{source:'admin'});
+    var items=(Array.isArray(res.data)?res.data:[]).map(infoBannerFromRow).slice(0,5);
+    dispatch('tapiracuai:banners-updated',{source:'active-banners',banners:items});
+    return items;
+  }
+  async function fetchAdminBanners(){
+    requireClient();
+    var res=await client.rpc('admin_list_banners');
+    if(res.error)throw res.error;
+    return (Array.isArray(res.data)?res.data:[]).map(infoBannerFromRow);
+  }
+  async function saveAdminBanner(b){
+    requireClient();
+    var res=await client.rpc('admin_save_banner',bannerPayload(b));
+    if(res.error)throw res.error;
+    var item=bannerRpcRow(res);
+    dispatch('tapiracuai:banners-updated',{source:'admin-banner',banner:item});
+    return item;
+  }
+  async function setAdminBannerActive(id,active){
+    requireClient();
+    if(!isUuid(id))throw new Error('Banner inválido.');
+    var res=await client.rpc('admin_set_banner_active',{p_banner_id:id,p_activo:active===true});
+    if(res.error)throw res.error;
+    var item=bannerRpcRow(res);
+    dispatch('tapiracuai:banners-updated',{source:'admin-banner-active',banner:item});
+    return item;
+  }
+  async function archiveAdminBanner(id){
+    requireClient();
+    if(!isUuid(id))throw new Error('Banner inválido.');
+    var res=await client.rpc('admin_archive_banner',{p_banner_id:id});
+    if(res.error)throw res.error;
+    var item=bannerRpcRow(res);
+    dispatch('tapiracuai:banners-updated',{source:'admin-banner-archive',banner:item});
+    return item||true;
+  }
+  async function unarchiveAdminBanner(id){
+    requireClient();
+    if(!isUuid(id))throw new Error('Banner inválido.');
+    var res=await client.rpc('admin_unarchive_banner',{p_banner_id:id});
+    if(res.error)throw res.error;
+    var item=bannerRpcRow(res);
+    dispatch('tapiracuai:banners-updated',{source:'admin-banner-unarchive',banner:item});
+    return item||true;
+  }
+  async function deleteAdminBanner(id,imagePath){
+    requireClient();
+    if(!isUuid(id))throw new Error('Banner inválido.');
+    if(imagePath){
+      var storage=await client.storage.from('banner-images').remove([String(imagePath)]);
+      if(storage.error)throw storage.error;
+    }
+    var res=await client.rpc('admin_delete_banner',{p_banner_id:id});
+    if(res.error)throw res.error;
+    dispatch('tapiracuai:banners-updated',{source:'admin-banner-delete',bannerId:id});
+    return res.data||true;
+  }
+  async function uploadBannerImage(file,path){
+    if(!file)return '';
+    requireClient();
+    validateImageFile(file);
+    var user=await currentAuthUser();
+    if(!user)throw new Error('Iniciá sesión para subir imágenes.');
+    var safeName=String(file.name||'banner').replace(/[^a-zA-Z0-9._-]+/g,'-');
+    var finalPath=path||'banners/'+(uuid()||Date.now())+'/'+Date.now()+'-'+safeName;
+    var res=await client.storage.from('banner-images').upload(finalPath,file,{cacheControl:'3600',upsert:true});
+    if(res.error)throw res.error;
+    return {url:publicUrl('banner-images',res.data.path),path:res.data.path};
+  }
+  async function fetchAdminClients(){
+    requireClient();
+    var res=await client.rpc('admin_list_clients');
+    if(res.error)throw res.error;
+    return (res.data||[]).map(adminClientFromRow);
+  }
+  function notificationFromRow(row){
+    row=row||{};
+    return {
+      id:row.id||row.notification_id||'',
+      title:row.titulo||row.title||'Notificación',
+      message:row.mensaje||row.message||'',
+      audience:row.audience||row.audiencia||row.role_target||'all',
+      userId:row.user_id||row.usuario_id||'',
+      destinationType:row.destino_tipo||row.destination_type||row.destinationType||'none',
+      destinationValue:row.destino_valor||row.destination_value||row.destinationValue||'',
+      startAt:row.fecha_inicio||row.start_at||row.startAt||'',
+      endAt:row.fecha_fin||row.end_at||row.endAt||'',
+      active:row.activo!==false&&row.active!==false,
+      archived:row.archivado===true||row.archived===true,
+      readAt:row.read_at||row.leido_at||row.readAt||'',
+      createdAt:row.created_at||row.createdAt||'',
+      updatedAt:row.updated_at||row.updatedAt||''
+    };
+  }
+  async function fetchMyNotifications(){
+    requireClient();
+    var res=await client.rpc('get_my_notifications');
+    if(res.error)throw res.error;
+    return (Array.isArray(res.data)?res.data:[]).map(notificationFromRow);
+  }
+  async function fetchMyUnreadNotificationCount(){
+    requireClient();
+    var res=await client.rpc('get_my_unread_notification_count');
+    if(res.error)throw res.error;
+    var value=Array.isArray(res.data)?res.data[0]:res.data;
+    if(value&&typeof value==='object')value=value.count||value.total||value.unread_count||value.get_my_unread_notification_count||0;
+    return Math.max(0,Number(value||0));
+  }
+  async function markNotificationRead(id){
+    requireClient();
+    if(!isUuid(id))throw new Error('Notificación inválida.');
+    var res=await client.rpc('mark_my_notification_read',{p_notification_id:id});
+    if(res.error)throw res.error;
     return true;
+  }
+  async function markAllNotificationsRead(){
+    requireClient();
+    var res=await client.rpc('mark_all_my_notifications_read');
+    if(res.error)throw res.error;
+    return true;
+  }
+  async function fetchAdminNotifications(){
+    requireClient();
+    var res=await client.rpc('admin_list_notifications');
+    if(res.error)throw res.error;
+    return (Array.isArray(res.data)?res.data:[]).map(notificationFromRow);
+  }
+  async function saveAdminNotification(data){
+    requireClient();
+    data=data||{};
+    var res=await client.rpc('admin_save_notification',{
+      p_notification_id:isUuid(data.id)?data.id:null,
+      p_titulo:data.title||'',
+      p_mensaje:data.message||'',
+      p_audience:data.audience||'all',
+      p_user_id:isUuid(data.userId)?data.userId:null,
+      p_destino_tipo:data.destinationType||'none',
+      p_destino_valor:data.destinationValue||null,
+      p_fecha_inicio:data.startAt||null,
+      p_fecha_fin:data.endAt||null,
+      p_activo:data.active===true
+    });
+    if(res.error)throw res.error;
+    return notificationFromRow(Array.isArray(res.data)?res.data[0]:res.data);
+  }
+  async function archiveAdminNotification(id){
+    requireClient();
+    if(!isUuid(id))throw new Error('Notificación inválida.');
+    var res=await client.rpc('admin_archive_notification',{p_notification_id:id});
+    if(res.error)throw res.error;
+    return notificationFromRow(Array.isArray(res.data)?res.data[0]:res.data);
   }
 
   if(client){
@@ -893,9 +1309,30 @@
     deleteProductRecord:deleteProductRecord,
     savePromotionRecord:savePromotionRecord,
     deletePromotionRecord:deletePromotionRecord,
-    fetchInfoBanners:fetchInfoBanners,
-    saveInfoBannerRecord:saveInfoBannerRecord,
-    deleteInfoBannerRecord:deleteInfoBannerRecord,
+    fetchMyJobs:fetchMyJobs,
+    saveMyJob:saveMyJob,
+    setMyJobStatus:setMyJobStatus,
+    archiveMyJob:archiveMyJob,
+    fetchActiveJobs:fetchActiveJobs,
+    fetchBusinessActiveJobs:fetchBusinessActiveJobs,
+    uploadJobImage:uploadJobImage,
+    fetchActiveBanner:fetchActiveBanner,
+    fetchActiveBanners:fetchActiveBanners,
+    fetchAdminBanners:fetchAdminBanners,
+    saveAdminBanner:saveAdminBanner,
+    setAdminBannerActive:setAdminBannerActive,
+    archiveAdminBanner:archiveAdminBanner,
+    unarchiveAdminBanner:unarchiveAdminBanner,
+    deleteAdminBanner:deleteAdminBanner,
+    uploadBannerImage:uploadBannerImage,
+    fetchAdminClients:fetchAdminClients,
+    fetchMyNotifications:fetchMyNotifications,
+    fetchMyUnreadNotificationCount:fetchMyUnreadNotificationCount,
+    markNotificationRead:markNotificationRead,
+    markAllNotificationsRead:markAllNotificationsRead,
+    fetchAdminNotifications:fetchAdminNotifications,
+    saveAdminNotification:saveAdminNotification,
+    archiveAdminNotification:archiveAdminNotification,
     pushClientProfiles:pushClientProfiles,
     pushBusinesses:pushBusinesses,
     pushProducts:pushProducts,
@@ -905,6 +1342,8 @@
     pushStats:pushStats,
     recordStatEvent:recordStatEvent,
     recordInquiry:recordInquiry,
+    fetchMyInquiries:fetchMyInquiries,
+    setInquiryStatus:setInquiryStatus,
     saveUpdateRequestRecord:saveUpdateRequestRecord,
     fetchUpdateRequestsForBusiness:fetchUpdateRequestsForBusiness,
     markUpdateRequestReviewed:markUpdateRequestReviewed,
