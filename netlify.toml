@@ -51,6 +51,16 @@
   status = 200
 
 [[redirects]]
+  from = "/eliminar-cuenta"
+  to = "/eliminar-cuenta.html"
+  status = 200
+
+[[redirects]]
+  from = "/eliminar-cuenta/"
+  to = "/eliminar-cuenta.html"
+  status = 200
+
+[[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
