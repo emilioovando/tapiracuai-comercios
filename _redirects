@@ -1,3 +1,5 @@
 /sw.js /index.html 404
 /service-worker.js /index.html 404
+/privacidad /privacidad.html 200
+/privacidad/ /privacidad.html 200
 /* /index.html 200
