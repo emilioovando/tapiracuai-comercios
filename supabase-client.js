@@ -1269,8 +1269,28 @@
       p_activo:data.active===true
     });
     if(res.error)throw res.error;
-    return notificationFromRow(Array.isArray(res.data)?res.data[0]:res.data);
+
+if(data.active===true){
+  var pushBody={
+    title:data.title,
+    body:data.message
+  };
+
+  if(data.audience==='user' && data.userId){
+    pushBody.user_id=data.userId;
   }
+
+  var pushResult=await client.functions.invoke('send-push-notification',{
+    body:pushBody
+  });
+
+  if(pushResult.error){
+    console.error('Error enviando push:',pushResult.error);
+    throw new Error('La notificación se guardó, pero no se pudo enviar el push');
+  }
+}
+
+return notificationFromRow(Array.isArray(res.data)?res.data[0]:res.data);
   async function archiveAdminNotification(id){
     requireClient();
     if(!isUuid(id))throw new Error('Notificación inválida.');
