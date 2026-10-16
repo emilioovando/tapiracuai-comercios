@@ -1291,6 +1291,8 @@ if(data.active===true){
 }
 
 return notificationFromRow(Array.isArray(res.data)?res.data[0]:res.data);
+}
+
   async function archiveAdminNotification(id){
     requireClient();
     if(!isUuid(id))throw new Error('Notificación inválida.');
