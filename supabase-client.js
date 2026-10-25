@@ -1,6 +1,28 @@
 // Tapiracuai Supabase bridge - Supabase is the primary data source.
 (function(){
   var cfg=window.TAPIRACUAI_AUTH_CONFIG||{};
+  var recoveryPage=/\/recuperar-password\.html$/.test(location.pathname);
+  var recoveryLink=new URL(location.href);
+  var recoveryKeys=['access_token','refresh_token','token','token_hash','type','expires_in','expires_at','token_type','code','error','error_code','error_description'];
+  var recoveryHash=new URLSearchParams(recoveryLink.hash.slice(1));
+  var recoveryAttempt=recoveryPage&&recoveryKeys.some(function(key){return recoveryLink.searchParams.has(key)||recoveryHash.has(key)});
+  var recoveryStatus=recoveryAttempt?'pending':'idle';
+  var recoveryUserId=null;
+  var invalidRecoveryMessage='El enlace de recuperación venció, ya fue utilizado o no es válido. Solicitá un nuevo correo.';
+  function getPasswordRecoveryState(){return {status:recoveryStatus,message:recoveryStatus==='invalid'?invalidRecoveryMessage:''}}
+  function cleanRecoveryUrl(){
+    if(!recoveryPage)return;
+    var url=new URL(location.href),hash=new URLSearchParams(url.hash.slice(1));
+    recoveryKeys.forEach(function(key){url.searchParams.delete(key);hash.delete(key)});
+    url.hash=hash.toString();
+    history.replaceState(history.state,'',url.pathname+url.search+url.hash);
+  }
+  function setPasswordRecoveryState(status){
+    recoveryStatus=status;
+    if(status!=='ready')recoveryUserId=null;
+    if(status==='ready'||status==='invalid')cleanRecoveryUrl();
+    dispatch('tapiracuai:password-recovery',getPasswordRecoveryState());
+  }
   var ADMIN_EMAIL='emiliojavi29@gmail.com';
   var STORAGE_KEYS={
     users:'tapiracuai_users',
@@ -554,7 +576,27 @@
   async function resetPassword(email){
     requireClient();
     var res=await client.auth.resetPasswordForEmail(normalizeEmail(email),{redirectTo:authRedirectUrl('recuperar-password.html')});
-    if(res.error)throw new Error(friendlyError(res.error));
+    if(res.error&&res.error.code!=='user_not_found')throw new Error('No se pudo enviar el enlace. Intentá nuevamente en unos minutos.');
+    return true;
+  }
+  async function updatePassword(password){
+    requireClient();
+    if(recoveryStatus!=='ready'||!recoveryUserId)throw new Error(invalidRecoveryMessage);
+    if(typeof password!=='string'||password.length<8||!/[A-Za-z]/.test(password)||!/\d/.test(password))throw new Error('La contraseña debe tener mínimo 8 caracteres, una letra y un número.');
+    var current=await client.auth.getUser();
+    if(current.error||!current.data||!current.data.user||current.data.user.id!==recoveryUserId){
+      setPasswordRecoveryState('invalid');
+      throw new Error(invalidRecoveryMessage);
+    }
+    var res=await client.auth.updateUser({password:password});
+    if(res.error){
+      if(res.error.status===401||['session_not_found','session_expired','refresh_token_not_found','refresh_token_already_used','bad_jwt'].indexOf(res.error.code)>-1){
+        setPasswordRecoveryState('invalid');
+        throw new Error(invalidRecoveryMessage);
+      }
+      throw new Error(friendlyError(res.error));
+    }
+    setPasswordRecoveryState('complete');
     return true;
   }
 
@@ -1312,8 +1354,20 @@ return notificationFromRow(Array.isArray(res.data)?res.data[0]:res.data);
 
   if(client){
     var hydrateTimer=null;
-    function requestHydrateAll(){clearTimeout(hydrateTimer);hydrateTimer=setTimeout(hydrateAll,60)}
-    client.auth.onAuthStateChange(function(){requestHydrateAll()});
+    function requestHydrateAll(){if(recoveryPage)return;clearTimeout(hydrateTimer);hydrateTimer=setTimeout(hydrateAll,60)}
+    client.auth.onAuthStateChange(function(event,session){
+      if(recoveryPage&&event==='PASSWORD_RECOVERY'&&session&&session.user&&recoveryStatus==='pending'){
+        recoveryUserId=session.user.id;
+        setPasswordRecoveryState('ready');
+      }else if(recoveryPage&&event==='SIGNED_OUT'&&recoveryStatus==='ready')setPasswordRecoveryState('invalid');
+      requestHydrateAll();
+    });
+    if(recoveryAttempt){
+      client.auth.getSession().then(function(){
+        // Supabase queues PASSWORD_RECOVERY after processing the callback URL.
+        setTimeout(function(){if(recoveryStatus==='pending')setPasswordRecoveryState('invalid')},0);
+      }).catch(function(){setPasswordRecoveryState('invalid')});
+    }
     requestHydrateAll();
   }
 
@@ -1324,6 +1378,8 @@ return notificationFromRow(Array.isArray(res.data)?res.data[0]:res.data);
     signUp:signUp,
     signOut:signOut,
     resetPassword:resetPassword,
+    updatePassword:updatePassword,
+    getPasswordRecoveryState:getPasswordRecoveryState,
     hydrateAll:hydrateAll,
     currentAuthUser:currentAuthUser,
     fetchUserProfile:fetchUserProfile,

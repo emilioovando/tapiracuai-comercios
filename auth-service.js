@@ -141,8 +141,12 @@
       return true;
     }
     throw new Error(supabaseUnavailableError());
-    if(isAdminEmail(email)||findUser(email))return true;
-    throw new Error('Correo no registrado');
+  }
+  async function updatePassword(password,confirmation){
+    if(password!==confirmation)throw new Error('Las contraseñas no coinciden.');
+    if(!validPassword(password))throw new Error('La contraseña debe tener mínimo 8 caracteres, una letra y un número.');
+    if(!(window.TapiracuaiSupabase&&TapiracuaiSupabase.available))throw new Error(supabaseUnavailableError());
+    return await TapiracuaiSupabase.updatePassword(password);
   }
   function setSession(user,mode){var clean=sanitizeUser(user);if(mode)clean.role=mode;writeJson(SESSION_KEY,{user:clean,active:true,createdAt:new Date().toISOString(),expiresAt:new Date(Date.now()+1000*60*60*24*30).toISOString()})}
   function getSession(){var session=readJson(SESSION_KEY,null);if(!session||!session.active||!session.user)return null;if(session.expiresAt&&new Date(session.expiresAt).getTime()<Date.now()){logout();return null}return session}
@@ -153,5 +157,5 @@
   function showMessage(target,message,type){var el=typeof target==='string'?document.querySelector(target):target;if(!el)return;el.textContent=message;el.className='auth-message '+(type||'info');el.hidden=false}
   function diagnostic(){console.log('Tapiracuai usuarios guardados:',users())}
 
-  window.TapiracuaiAuth={register:register,login:login,recover:recover,logout:logout,getSession:getSession,switchMode:switchMode,redirectForRole:redirectForRole,showMessage:showMessage,validEmail:validEmail,validPassword:validPassword,users:users,diagnostic:diagnostic,normalizeEmail:normalizeEmail};
+  window.TapiracuaiAuth={register:register,login:login,recover:recover,updatePassword:updatePassword,logout:logout,getSession:getSession,switchMode:switchMode,redirectForRole:redirectForRole,showMessage:showMessage,validEmail:validEmail,validPassword:validPassword,users:users,diagnostic:diagnostic,normalizeEmail:normalizeEmail};
 })();
