@@ -575,7 +575,7 @@
   async function signOut(){if(client)await client.auth.signOut();rawRemoveItem.call(localStorage,STORAGE_KEYS.session)}
   async function resetPassword(email){
     requireClient();
-    var res=await client.auth.resetPasswordForEmail(normalizeEmail(email),{redirectTo:authRedirectUrl('recuperar-password.html')});
+    var res=await client.auth.resetPasswordForEmail(normalizeEmail(email),{redirectTo:'https://tapiracuai-comercios.netlify.app/recuperar-password.html'});
     if(res.error&&res.error.code!=='user_not_found')throw new Error('No se pudo enviar el enlace. Intentá nuevamente en unos minutos.');
     return true;
   }

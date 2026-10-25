@@ -19,7 +19,7 @@ https://tubular-tartufo-9465bb.netlify.app
 https://tubular-tartufo-9465bb.netlify.app/
 https://tubular-tartufo-9465bb.netlify.app/login.html
 https://tubular-tartufo-9465bb.netlify.app/registro.html
-https://tubular-tartufo-9465bb.netlify.app/recuperar-password.html
+https://tapiracuai-comercios.netlify.app/recuperar-password.html
 https://tubular-tartufo-9465bb.netlify.app/**
 ```
 
