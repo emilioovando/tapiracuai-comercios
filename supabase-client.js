@@ -1301,6 +1301,15 @@ return notificationFromRow(Array.isArray(res.data)?res.data[0]:res.data);
     return notificationFromRow(Array.isArray(res.data)?res.data[0]:res.data);
   }
 
+  async function deleteAdminNotification(id){
+    requireClient();
+    if(!isUuid(id))throw new Error('Notificación inválida.');
+    var res=await client.rpc('admin_delete_notification',{p_notification_id:id});
+    if(res.error)throw res.error;
+    document.dispatchEvent(new CustomEvent('tapiracuai:notifications-updated',{detail:{source:'admin-notification-delete'}}));
+    return res.data||true;
+  }
+
   if(client){
     var hydrateTimer=null;
     function requestHydrateAll(){clearTimeout(hydrateTimer);hydrateTimer=setTimeout(hydrateAll,60)}
@@ -1355,6 +1364,7 @@ return notificationFromRow(Array.isArray(res.data)?res.data[0]:res.data);
     fetchAdminNotifications:fetchAdminNotifications,
     saveAdminNotification:saveAdminNotification,
     archiveAdminNotification:archiveAdminNotification,
+    deleteAdminNotification:deleteAdminNotification,
     pushClientProfiles:pushClientProfiles,
     pushBusinesses:pushBusinesses,
     pushProducts:pushProducts,
