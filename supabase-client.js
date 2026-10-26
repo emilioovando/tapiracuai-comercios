@@ -1312,10 +1312,14 @@
     });
     if(res.error)throw res.error;
 
+var savedNotification=notificationFromRow(Array.isArray(res.data)?res.data[0]:res.data);
 if(data.active===true){
   var pushBody={
     title:data.title,
-    body:data.message
+    body:data.message,
+    destinationType:savedNotification.destinationType,
+    destinationValue:savedNotification.destinationValue,
+    audience:savedNotification.audience
   };
 
   if(data.audience==='user' && data.userId){
@@ -1332,7 +1336,7 @@ if(data.active===true){
   }
 }
 
-return notificationFromRow(Array.isArray(res.data)?res.data[0]:res.data);
+return savedNotification;
 }
 
   async function archiveAdminNotification(id){

@@ -2880,6 +2880,7 @@
     function runNotificationDestination(n){
       var type=n&&n.destinationType||'none',value=n&&n.destinationValue||'';
       if(type==='offers'){openOffersScreen();return}
+      if(type==='jobs'){openJobsScreen();return}
       if(type==='new'){openCustomerListView('new');return}
       if(type==='delivery'){openCustomerListView('delivery');return}
       if(type==='business'&&value){openStoreFromSourceId(value);return}
